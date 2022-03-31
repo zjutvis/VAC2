@@ -1,0 +1,596 @@
+<html lang="en">
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>Causality Analysis</title>
+<link rel="shortcut icon" href='#'>
+<style>
+    .title_div {
+        width: 100%;
+        height: 30px;
+        background: rgba(18, 13, 46, 0.8);
+        text-align: center;
+        color: white;
+        font-size: 20px;
+        line-height: 30px;
+    }
+
+    .lasso path {
+        stroke: rgb(80, 80, 80);
+        stroke-width: 2px;
+    }
+
+    .lasso .drawn {
+        fill-opacity: .05;
+    }
+
+    .lasso .loop_close {
+        fill: none;
+        stroke-dasharray: 4, 4;
+    }
+
+    .lasso .origin {
+        fill: #3399FF;
+        fill-opacity: .5;
+    }
+
+    .not_possible {
+        fill: rgb(200, 200, 200);
+    }
+
+    .possible {
+        fill: #EC888C;
+    }
+
+    .selected {
+        fill: steelblue;
+    }
+</style>
+</head>
+
+<body>
+    <div class="title_div"></div>
+    <!-- content of system -->
+    <table class="mcv-content-wrapper">
+        <!-- contais query multicausal hypergraph -->
+        <tr class="mcv-content-first-row">
+            <!-- query -->
+            <td class="mcv-query-fixed">
+                <!-- <div class="mcv-query-container"> -->
+                <div id="top-filterPanel" class="panel panel-default mcv-panel">
+                    <!-- Datasets -->
+                    <div class="mcv-panel-top">
+                        <div class="mcv-panel-heading-flex">
+                            <div class="panel-heading mcv-panel-heading">
+                                <p class="p1">Dataset</p>
+                            </div>
+                            <div class="icon">
+                                <svg t="1648181303504" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                                    xmlns="http://www.w3.org/2000/svg" p-id="2242" width="20" height="20">
+                                    <path
+                                        d="M1014.9 935.6l-32.3-32.3c26.1-35.7 41.5-79.7 41.5-127.3 0-88-52.6-163.6-128-197.3V242c0-39.6-23.4-76.6-64-108.2C753.6 72.8 611 32 448 32S142.4 72.8 64 133.8C23.4 165.4 0 202.4 0 242v476c0 116 200.6 210 448 210 67.7 0 131.8-7 189.3-19.6C676.8 959.3 738.6 992 808 992c48.6 0 93.5-16.1 129.6-43.2l32.1 32.1c6.2 6.3 14.4 9.4 22.6 9.4s16.4-3.1 22.6-9.4c12.5-12.5 12.5-32.8 0-45.3zM158.4 151.5c36.5-17.1 79.4-30.6 127.7-40.2C337.2 101.1 391.7 96 448 96s110.8 5.1 161.9 15.3c48.3 9.6 91.2 23.1 127.7 40.2 58.2 27.3 94.4 62 94.4 90.5s-36.2 63.3-94.4 90.5c-36.5 17.1-79.4 30.6-127.7 40.2C558.8 382.9 504.3 388 448 388s-110.8-5.1-161.9-15.3c-48.3-9.6-91.2-23.1-127.7-40.2C100.2 305.3 64 270.6 64 242s36.2-63.3 94.4-90.5zM64 350.2c78.4 61 221 101.8 384 101.8s305.6-40.8 384-101.8V398c0 28.6-36.2 63.3-94.4 90.5-36.5 17.1-79.4 30.6-127.7 40.2C558.8 538.9 504.3 544 448 544s-110.8-5.1-161.9-15.3c-48.3-9.6-91.2-23.1-127.7-40.2C100.2 461.3 64 426.6 64 398v-47.8zM448 864c-56.3 0-110.8-5.1-161.9-15.3-48.3-9.6-91.2-23.1-127.7-40.2C100.2 781.3 64 746.6 64 718v-51.8c78.4 61 221 101.8 384 101.8 50.7 0 99.4-4 144.8-11.2-0.6 6.3-0.8 12.7-0.8 19.2 0 25.9 4.5 50.7 12.9 73.7C555.2 859.2 502.5 864 448 864z m162.4-175.4c-0.2 0-0.3 0.1-0.5 0.1C558.8 698.9 504.3 704 448 704s-110.8-5.1-161.9-15.3c-48.3-9.6-91.2-23.1-127.7-40.2C100.2 621.3 64 586.6 64 558v-51.8c78.4 61 221 101.8 384 101.8s305.6-40.8 384-101.8V558c0 1.1-0.1 2.2-0.2 3.3-7.8-0.9-15.8-1.3-23.8-1.3-88.2 0-164 52.9-197.6 128.6z m305.1 194.9C886.8 912.2 848.6 928 808 928c-37.7 0-73.3-13.6-101.2-38.6-2.2-1.9-4.3-3.9-6.3-6-14.2-14.2-25.3-30.8-32.8-48.8C660 816.3 656 796.5 656 776c0-11.2 1.2-22.2 3.5-32.8 6.2-28.1 20.2-53.8 41-74.6 2.7-2.7 5.5-5.3 8.4-7.8 19.5-16.8 42.6-28.2 67.5-33.5 10.3-2.2 20.9-3.3 31.7-3.3 32 0 62.5 9.8 88 28 6.9 4.9 13.4 10.4 19.5 16.5C944.2 697.2 960 735.4 960 776s-15.8 78.8-44.5 107.5z"
+                                        p-id="2243" fill="#2c2c2c"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="split-line-top">
+                            <hr class="split-line">
+                        </div>
+                    </div>
+
+                    <div class="mcv-select-datasets">
+                        <select id="dataset">
+                            <option value="result_19_event" selected style="display: none">Reddit</option>
+                            <option value="result_19_event">Reddit</option>
+                            <option value="combine_mscbn_top16_part2">Website_top16</option>
+                            <option value="combine_msnbc_17_events_part2">Website_17</option>
+                        </select>
+                    </div>
+
+
+                    <!-- max causes' number -->
+                    <div class="mcv-panel-top">
+                        <div class="mcv-panel-heading-flex">
+                            <div class="panel-heading mcv-panel-heading">
+                                <p class="p1">Causes Limit</p>
+                            </div>
+                            <div class="icon">
+                                <svg t="1645712690620" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                                    xmlns="http://www.w3.org/2000/svg" p-id="7839" width="19" height="19">
+                                    <path
+                                        d="M1024.00324 767.1c0.5 71.1-57 128.9-128 128.9-55.7 0-103.1-35.6-120.7-85.3-2.3-6.4-8.3-10.7-15.1-10.7H208.00324c-42.5 0-82.6-16.7-113-47-30.3-30.3-47-70.4-47-113s16.7-82.6 47-113c30.3-30.3 70.5-47 113-47h576c53.3 0 96.5-43.6 96-97-0.5-52.8-44.4-95-97.2-95h-519c-6.8 0-12.8 4.3-15.1 10.7-17.6 49.7-65 85.3-120.7 85.3C57.00324 384-0.49676 326.2 0.00324 255.1 0.50324 184.6 59.90324 126.7 130.40324 128c54.7 1 101.1 36.4 118.4 85.4 2.2 6.4 8.3 10.6 15 10.6H784.00324c42.5 0 82.6 16.7 113 47 30.3 30.3 47 70.5 47 113s-16.7 82.6-47 113c-30.3 30.3-70.5 47-113 47H208.00324c-53.3 0-96.5 43.6-96 97 0.5 52.8 44.4 95 97.2 95h551c6.7 0 12.8-4.2 15-10.6 17.3-49.1 63.6-84.4 118.4-85.4 70.5-1.3 129.9 56.6 130.4 127.1z"
+                                        p-id="7840"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="split-line-top">
+                            <hr class="split-line">
+                        </div>
+                        <div class="causal-depth-filter">
+                            <input id="numberPicker" type="number" value="3" min="1" max="3" step="1" />
+                        </div>
+
+
+                    </div>
+                    <!-- causal strength -->
+                    <div class="mcv-panel-top">
+                        <div class="mcv-panel-heading-flex">
+                            <div class="panel-heading mcv-panel-heading">
+                                <p class="p1">Causal Strength</p>
+                            </div>
+                            <div class="icon">
+                                <svg t="1645712596055" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                                    xmlns="http://www.w3.org/2000/svg" p-id="6970" width="20" height="20">
+                                    <path
+                                        d="M925.918257 211.615069c-0.818627 1.125612-2.762866 2.251224-3.786149 3.17218L674.906765 459.966024v402.662136c0 46.354752-35.507944 84.011592-81.965024 84.011592-21.488958 0-39.703408-8.18627-55.359648-22.921555-1.125612-0.716299-2.251224-1.637254-3.17218-2.558209L465.645248 853.21395c-8.493255-8.390926-8.595583-22.0006-0.204656-30.596182l29.265913-29.470571c8.288598-8.083941 21.591286-8.18627 29.982213-0.102328l62.829619 65.080843c0.920955 0.818627 1.330269 1.637254 2.455881 2.660538-0.61397-172.832617-0.818627-378.61497-0.818627-419.750975v-7.265314c0-5.730389 5.116419-11.563106 9.209553-15.553912l264.211852-261.960628c0.716299-0.920955 1.534926-3.479165 2.353553-3.479164h-705.042471c0.818627 0 0.716299 2.455881 1.330269 3.376836L421.644049 418.625362c4.093135 4.093135 4.502448 9.516538 4.502448 15.246927V606.090936c0 0.204657 0.61397 0.511642 0.613971 0.716299-0.511642 23.330868-18.726092 41.852303-41.647647 41.852303-23.330868 0-44.819826-19.033077-44.819826-42.363945v-146.329569l-242.415909-245.588089c-0.920955-0.920955 0.61397-2.455881-0.102328-3.479164-14.837614-15.860897-23.126212-36.735885-23.023884-58.429499 0-46.354752 37.65684-85.648846 83.909264-85.648846h707.600679c22.409913 0 43.489557 10.335165 59.350455 26.196062 15.860897 15.860897 24.047167 37.759169 24.047167 60.169082-0.204657 21.591286-8.902568 42.773259-23.740182 58.429499zM388.182672 665.850705c25.786749 0.920955 45.945438 22.512241 45.024483 48.29899-0.818627 24.558809-20.568002 44.205856-45.024483 45.024483-25.786749-0.920955-45.945438-22.512241-45.024483-48.298991 0.818627-24.45648 20.465674-44.205856 45.024483-45.024482z"
+                                        p-id="6971"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="split-line-top">
+                            <hr class="split-line">
+                        </div>
+                        <p class="p2">
+                            Impelling</p>
+                        <div id="causal-strength-filter1">
+                            <!-- use d3.js to draw -->
+                        </div>
+                        <p class="p2">
+                            Inhibiting
+                        </p>
+                        <div id="causal-strength-filter2">
+                            <!-- use d3.js to draw -->
+                        </div>
+                    </div>
+                    <!-- element query -->
+                    <div class="mcv-panel-top">
+                        <div class="mcv-panel-heading-flex">
+                            <div class="panel-heading mcv-panel-heading">
+                                <p class="p1">Element Query</p>
+                            </div>
+                            <div class="icon">
+                                <button class="mcv-hidden-button" onclick="add_query()">
+                                    <svg t="1648185768168" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                                        xmlns="http://www.w3.org/2000/svg" p-id="9410" width="18" height="18">
+                                        <path
+                                            d="M763.221333 702.848L981.333333 921.002667 921.002667 981.333333l-218.154667-218.112A403.626667 403.626667 0 0 1 448 853.333333a405.333333 405.333333 0 1 1 405.333333-405.333333 403.626667 403.626667 0 0 1-90.112 254.848zM448 768a320 320 0 1 0 0-640 320 320 0 0 0 0 640z"
+                                            p-id="9411" fill="#2c2c2c"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="split-line-top">
+                            <hr class="split-line">
+                        </div>
+                        <div class="mcv-select-element">
+                            <table>
+                                <tr>
+                                    <td id="mcv-select-source">
+                                        <div class="mcv-select-background">
+                                            <input id="input-select-source" type="text"
+                                                class="form-control mcv-searchBar-input" placeholder="source">
+                                            <button class="mcv-select-delete-button"
+                                                id="mcv-select-delete-source-button" onclick="deleteInputArea()">
+                                                <svg t="1645883397735" viewBox="0 0 1024 1024" version="1.1"
+                                                    xmlns="http://www.w3.org/2000/svg" p-id="2073" width="16"
+                                                    height="16">
+                                                    <path
+                                                        d="M827.392 195.584q65.536 65.536 97.792 147.456t32.256 167.936-32.256 167.936-97.792 147.456-147.456 98.304-167.936 32.768-168.448-32.768-147.968-98.304-98.304-147.456-32.768-167.936 32.768-167.936 98.304-147.456 147.968-97.792 168.448-32.256 167.936 32.256 147.456 97.792zM720.896 715.776q21.504-21.504 18.944-49.152t-24.064-49.152l-107.52-107.52 107.52-107.52q21.504-21.504 24.064-49.152t-18.944-49.152-51.712-21.504-51.712 21.504l-107.52 106.496-104.448-104.448q-21.504-20.48-49.152-23.04t-49.152 17.92q-21.504 21.504-21.504 52.224t21.504 52.224l104.448 104.448-104.448 104.448q-21.504 21.504-21.504 51.712t21.504 51.712 49.152 18.944 49.152-24.064l104.448-104.448 107.52 107.52q21.504 21.504 51.712 21.504t51.712-21.504z"
+                                                        p-id="2074" fill="#2c2c2c"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button id="change_source_target_button" class="mcv-hidden-button">
+                                            <svg t="1647333518759" style="margin: 2px" viewBox="0 0 1024 1024"
+                                                version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4073" width="16"
+                                                height="16">
+                                                <path
+                                                    d="M162.909091 449.163636h681.890909c34.909091 0 65.163636-20.945455 76.8-51.2s6.981818-67.490909-16.290909-93.090909l-146.618182-153.6c-27.927273-27.927273-69.818182-27.927273-97.745454-2.327272-27.927273 25.6-27.927273 69.818182-2.327273 97.745454l58.181818 60.509091H162.909091c-39.563636 0-69.818182 30.254545-69.818182 69.818182s32.581818 72.145455 69.818182 72.145454zM861.090909 574.836364H179.2c-34.909091 0-65.163636 20.945455-76.8 51.2s-6.981818 67.490909 16.290909 93.090909l146.618182 153.6c13.963636 13.963636 32.581818 20.945455 51.2 20.945454 16.290909 0 34.909091-6.981818 48.872727-18.618182 27.927273-25.6 27.927273-69.818182 2.327273-97.745454l-58.181818-60.509091H861.090909c39.563636 0 69.818182-30.254545 69.818182-69.818182s-32.581818-72.145455-69.818182-72.145454z"
+                                                    p-id="4074" fill="#8a8a8a"></path>
+                                            </svg>
+                                        </button>
+                                    </td>
+                                    <td id="mcv-select-target">
+                                        <div class="mcv-select-background">
+                                            <input id="input-select-target" type="text"
+                                                class="form-control mcv-searchBar-input" placeholder="target">
+                                            <button class="mcv-select-delete-button"
+                                                id="mcv-select-delete-target-button" onclick="deleteInputArea()">
+                                                <svg t="1645883397735" viewBox="0 0 1024 1024" version="1.1"
+                                                    xmlns="http://www.w3.org/2000/svg" p-id="2073" width="16"
+                                                    height="16">
+                                                    <path
+                                                        d="M827.392 195.584q65.536 65.536 97.792 147.456t32.256 167.936-32.256 167.936-97.792 147.456-147.456 98.304-167.936 32.768-168.448-32.768-147.968-98.304-98.304-147.456-32.768-167.936 32.768-167.936 98.304-147.456 147.968-97.792 168.448-32.256 167.936 32.256 147.456 97.792zM720.896 715.776q21.504-21.504 18.944-49.152t-24.064-49.152l-107.52-107.52 107.52-107.52q21.504-21.504 24.064-49.152t-18.944-49.152-51.712-21.504-51.712 21.504l-107.52 106.496-104.448-104.448q-21.504-20.48-49.152-23.04t-49.152 17.92q-21.504 21.504-21.504 52.224t21.504 52.224l104.448 104.448-104.448 104.448q-21.504 21.504-21.504 51.712t21.504 51.712 49.152 18.944 49.152-24.064l104.448-104.448 107.52 107.52q21.504 21.504 51.712 21.504t51.712-21.504z"
+                                                        p-id="2074" fill="#2c2c2c"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="group1">
+                            <div>
+                                <input type="radio" name="searchFrom" id="rb1" value="individual" />
+                                <label class="radiotexForsearchFrom" for="rb1">
+                                    individual results</label>
+                            </div>
+                            <div>
+                                <input type="radio" name="searchFrom" id="rb1" value="combined" />
+                                <label class="radiotexForsearchFrom" for="rb1">
+                                    combined results</label>
+                            </div>
+                            <div>
+                                <input type="radio" name="searchFrom" id="rb1" value="filtered" checked="checked" />
+                                <label class="radiotexForsearchFrom" for="rb1">
+                                    filtered results</label>
+                            </div>
+
+                        </div>
+
+                    </div>
+                    <!-- query history-->
+                    <div class="mcv-panel-top">
+                        <div class="mcv-panel-heading-flex">
+                            <div class="panel-heading mcv-panel-heading">
+                                <p class="p1">Query History</p>
+                            </div>
+                            <div class="icon">
+                                <svg t="1645712362391" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                                    xmlns="http://www.w3.org/2000/svg" p-id="5268" width="24" height="24">
+                                    <path
+                                        d="M746.666667 192a64 64 0 0 1 64 64v444.586667L657.6 874.666667H298.666667a64 64 0 0 1-64-64V256a64 64 0 0 1 64-64v618.666667h266.645333l0.021333-181.333334H746.666667V192z m-14.848 501.333333H629.333333l-0.021333 116.586667 102.506667-116.586667zM554.666667 512v64h-192v-64h192z m106.666666-128v64H362.666667v-64h298.666666z m42.666667-234.666667v106.666667h-64V149.333333h64zM402.816 149.333333v106.666667h-64V149.333333h64zM597.333333 182.72v64h-149.333333v-64h149.333333z"
+                                        p-id="5269"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="split-line-top">
+                            <hr class="split-line">
+                        </div>
+
+                    </div>
+
+                </div>
+                <!-- </div> -->
+            </td>
+            <!-- multicausal -->
+            <td class="mcv-causality-fixed">
+                <div id="mcv-multicausalContainer-panel" class="panel panel-default mcv-clearfix">
+
+                    <div id="mcv-multicausalContainer" class="col-md-12 panel-body">
+                        <div id="Brushview">
+                        </div>
+                        <div id="InteractiveDiv">
+                            <div id="editDiv">
+                                <p class="p5">edit</p>
+                                <button id="delete_a_link_button" data-toggle="popover" data-placement="top"
+                                    data-original-title=""
+                                    data-content="Click a circle with arc to delete a causal link"
+                                    aria-describedby="tooltip" class="mcv-hidden-button"
+                                    onclick="delete_a_link_button()">
+                                    <svg t="1646653167385" class="editicon" viewBox="0 0 1024 1024" version="1.1"
+                                        style="margin-top: 0px; margin-left:20px" xmlns="http://www.w3.org/2000/svg"
+                                        p-id="3715" width="24" height="24" id="delete_a_link_svg">
+                                        <path
+                                            d="M512 96a416 416 0 1 0 416 416A416.48 416.48 0 0 0 512 96z m160 448h-128v128a32 32 0 0 1-64 0v-128h-128a32 32 0 0 1 0-64h128v-128a32 32 0 0 1 64 0v128h128a32 32 0 0 1 0 64z"
+                                            p-id="3716" fill="#2c2c2c"></path>
+                                    </svg>
+                                </button>
+
+                                <a tabindex="0" id="delete_a_link_button" class="mcv-hidden-button" role="button"
+                                    data-toggle="popover" data-trigger="focus" title=""
+                                    data-content="Click a circle with arc to delete a causal link" data-placement="top"
+                                    onclick="delete_a_link_button()">
+                                    <svg t="1646653128996" class="editicon" viewBox="0 0 1024 1024" version="1.1"
+                                        style="margin-top: 0px; margin-left:10px" xmlns="http://www.w3.org/2000/svg"
+                                        p-id="3457" width="24" height="24">
+                                        <path
+                                            d="M512 96a416 416 0 1 0 416 416A416.48 416.48 0 0 0 512 96z m135.744 506.496a32 32 0 1 1-45.248 45.248L512 557.248l-90.496 90.496a32 32 0 0 1-45.248-45.248L466.752 512l-90.496-90.496a32 32 0 0 1 45.248-45.248L512 466.752l90.496-90.496a32 32 0 0 1 45.248 45.248L557.248 512z"
+                                            p-id="3458" fill="#2c2c2c"></path>
+                                    </svg>
+                                </a>
+
+                            </div>
+                            <div id="sortDiv">
+                                <p class="p5">vertical ordering</p>
+                                <div class="group">
+                                    <input type="radio" name="verticalRadioBox" id="rb1" value="id" checked="checked" />
+                                    <label class="radiotext" for="rb1">event's id</label>
+                                    <input type="radio" name="verticalRadioBox" id="rb2" value="cluster" />
+                                    <label class="radiotext" for="rb2">cluster</label>
+                                    <input type="radio" name="verticalRadioBox" id="rb4" value="alphabetical" />
+                                    <label class="radiotext" for="rb4">alphabetical</label>
+                                    <input type="radio" name="verticalRadioBox" id="rb3" value="manual" />
+                                    <label class="radiotext" for="rb3">manual</label>
+
+                                </div>
+                                <p class="p5" style="margin-left: 40px;">horizontal ordering</p>
+                                <div class="group">
+                                    <input type="radio" name="horizontalRadioBox" id="rb3" value="default"
+                                        checked="checked" />
+                                    <label class="radiotext" for="rb3">causal direction</label>
+                                    <input type="radio" name="horizontalRadioBox" id="rb1" value="strength" />
+                                    <label class="radiotext" for="rb1">causal strength</label>
+                                    <input type="radio" name="horizontalRadioBox" id="rb2" value="number" />
+                                    <label class="radiotext" for="rb2">causes' number</label>
+                                    <input type="radio" name="horizontalRadioBox" id="rb3" value="manual" />
+                                    <label class="radiotext" for="rb3">manual</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </td>
+            <!-- hypergraph -->
+            <td class="mcv-hypergraph-fixed">
+                <div id="mcv-hypergraphContainer-panel" class="panel panel-default mcv-clearfix">
+                    <div id="mcv-hypergraphContainer" class="col-md-12 panel-body">
+                        <button type="button" class="btn btn-primary btn-block"
+                            style="width:239px;height:25px;background:rgb(22,18,61)" onclick="genSandbox()">
+                            <p class="p4" id="pathwaytile" style="top:7px; ">Causal Propagation</p>
+                        </button>
+                        <!--    Result:    -->
+                        <br>
+                        <div class="card text-center align-items-center">
+                            <!--<div style="width: 10%" id="loadingspinner" style="display: none;"><div class="loader">Loading...</div></div>-->
+                            <svg id="graphsandbox" viewBox="0 0 80 120"></svg>
+                        </div>
+
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <!-- contains propagations -->
+        <tr class="mcv-content-propagation-row ">
+            <td class="mcv-propagation-fixed" colspan="2">
+                <div id="mcv-propagationContainer-panel" class="panel panel-default mcv-clearfix">
+                    <div id="mcv-propagationContainer" class="col-md-12 panel-body">
+                        <div id="query-history">
+                            <div id="query-history-list" style="display: flex"></div>
+                            <div id="query-history-tool" style="display: flex"></div>
+                        </div>
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <!-- contains sequence -->
+        <!-- <tr class="mcv-content-second-row ">
+            <td class="mcv-sequence-fixed" colspan="2">
+                <div id="mcv-sequenceContainer-panel" class="panel panel-default mcv-clearfix">
+                    <div id="mcv-sequenceContainer" class="col-md-12 panel-body">
+                        <div id="SequencesVis">
+
+                        </div>
+                    </div>
+                </div>
+            </td>
+        </tr> -->
+    </table>
+
+</body>
+<link rel="stylesheet" type="text/css" href="./../static/css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="./../static/css/layout.css">
+<link rel="stylesheet" type="text/css" href="./../static/css/multicausalvis.css">
+<script type="text/javascript" src="./../static/js/d3.v4.min.js"></script>
+<script type="text/javascript" src="./../static/js/d3.v3.min.js"></script>
+<script type="text/javascript" src="./../static/js/d3-lasso.min.js"></script>
+<script type="text/javascript" src="./../static/js/d3-tip.js"></script>
+<script type="text/javascript" src="./../static/js/jquery.min.js"></script>
+<script type="text/javascript" src="./../static/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="./../static/myjs/globalVariables.js"></script>
+<script type="text/javascript" src="./../static/myjs/preprocess.js"></script>
+<script type="text/javascript" src="./../static/myjs/DrawMainUsePath.js"></script>
+<script type="text/javascript" src="./../static/myjs/DrawCausalityDAG.js"></script>
+<script type="text/javascript" src="../static/myjs/ShortestPathCalculator.js"></script>
+<script type="text/javascript" src="../static/myjs/jLouvain.js"></script>
+<script type="text/javascript" src="../static/myjs/DrawBarChart.js"></script>
+<script src="./../static/js/d3-simple-slider.min.js"></script>
+<script src="../static/myjs_zsj/Slider.js"></script>
+<script type="text/javascript" src="../static/myjs_zsj/DrawPieChart.js"></script>
+
+<!--<script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>-->
+<script src="./../static/js/d3-interpolate.v1.min.js"></script>
+<script src="./../static/js/d3-scale-chromatic.v1.min.js"></script>
+<script src="./../static/js/bootstrap-input-spinner.js"></script>
+
+<script type="text/javascript" src="../static/myjs_zsj/FocusContext.js"></script>
+
+<script type="text/javascript" src="../static/myjs_zsj/BrushUpdate.js"></script>
+<script type="text/javascript" src="../static/myjs_zsj/MultiLevelVis.js"></script>
+<script type="text/javascript" src="../static/myjs_zsj/ContextVis.js"></script>
+<script type="text/javascript" src="./../static/myjs/CenterVis.js"></script>
+<script type="text/javascript" src="../static/myjs_zsj/MultiLevelCenter.js"></script>
+<script type="text/javascript" src="../static/myjs_zsj/MultiLevelSide12.js"></script>
+<script type="text/javascript" src="../static/myjs_zsj/DrawPropagation.js"></script>
+
+
+<!--Draw Propagation-->
+<script src="./lib/jquery-3.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+    crossorigin="anonymous"></script>
+<script src="./lib/popper.js"></script>
+<script src="./lib/bootstrap.js"></script>
+<link href="../static/myjs_zsj/PropagationPath/css/neumorph.min.css" rel="stylesheet">
+<link rel="canonical" href="https://getbootstrap.com/docs/4.0/examples/starter-template/">
+<!-- Bootstrap core CSS -->
+<link href="../static/myjs_zsj/PropagationPath/css/bootstrap.css" rel="stylesheet">
+<!-- Custom styles for this template -->
+<link href="../static/myjs_zsj/PropagationPath/css/starter-template.css" rel="stylesheet">
+<script src="../static/myjs_zsj/PropagationPath//lib/seedrandom.min.js"></script>
+<script src="../static/myjs_zsj/PropagationPath//lib/d3.v5.min.js"></script>
+<script src="../static/myjs_zsj/PropagationPath//lib/glpk.min.js"></script>
+<script src="../static/myjs_zsj/PropagationPath//simple/simplegraph.js"></script>
+<script src="../static/myjs_zsj/PropagationPath//simple/simpleLp.js"></script>
+<script src="../static/myjs_zsj/PropagationPath//simple/testCaseGenerator.js"></script>
+<script src="../static/myjs_zsj/PropagationPath//js/GroupCreation.js"></script>
+<script src="../static/myjs_zsj/PropagationPath//js/readFromJson.js"></script>
+<script src="../static/myjs_zsj/PropagationPath//js/GroupCreation.js"></script>
+
+<script type="text/javascript" src="../static/myjs_zsj/GlobalFunctions.js"></script>
+
+
+<script type="text/javascript" src="./../static/js/d3-interpolate.v1.min.js"></script>
+<script type="text/javascript" src="./../static/js/d3-scale-chromatic.v1.min.js"></script>
+<script>
+    //var brusheddata_center,
+    //   brusheddata_side1,
+    //    brusheddata_side2
+    var global_linelist;
+    var select_strengths = [-0.3, 0.3]  //strength默认值
+    var causes_max = 4
+    var global_obj;
+    //数据：对应的拆分为全局的
+    //全局变量global_nodes：用到的所有事件"id":事件原始的id "name": 事件名称, "color": 事件对应的颜色,"order": 前端分配的上下次序
+    var nodes = [];
+
+    var widthofcontextgroup
+    var vertical_order = "id"
+    var horizontal_order = "default"
+    var deletable = 0   //默认不可以删除
+    var deletedIndexOfLinks = -1
+    var order_method = "id"
+
+    var maxCountInAPeriod = 0
+    var max_date = 0
+    var searchFromIndividual = 0
+    $('#mcv-select-delete-source-button').click(function () {
+        $("#input-select-source").val($(this).attr('placeholder'));
+    });
+    $('#mcv-select-delete-target-button').click(function () {
+        $("#input-select-target").val($(this).attr('placeholder'));
+    });
+
+
+    function delete_a_link_button() {
+        //点击删除按钮之后：deletable=1为可删除
+        deletable = 1
+        console.log("deletable" + deletable)
+    }
+    $('[data-toggle="popover"]').popover({
+        trigger: 'focus'
+    })
+
+    $("input[type='number']").inputSpinner()
+
+    $('.btn-decrement').click(function () {
+        console.log("decrement")
+        causes_max = parseInt($("input[inputmode='decimal']").val());
+        focusandcontextbrush("filter", "#Brushview", global_obj, select_strengths, causes_max, vertical_order, horizontal_order)
+    })
+
+    $('.btn-increment').click(function () {
+        console.log("increment")
+        causes_max = parseInt($("input[inputmode='decimal']").val());
+        focusandcontextbrush("filter", "#Brushview", global_obj, select_strengths, causes_max, vertical_order, horizontal_order)
+    })
+
+    $('#change_source_target_button').click(function () {
+        console.log("change")
+        let query_source = document.getElementById("input-select-source").value
+        let query_target = document.getElementById("input-select-target").value
+        console.log(query_source + " " + query_target)
+        $("#input-select-source").val(query_target);
+        $("#input-select-target").val(query_source);
+    })
+
+    var $horizontalRadioBox = $("input:radio[name=horizontalRadioBox]");
+    $horizontalRadioBox.on("change", function () {
+        console.log($(this).val())
+        horizontal_order = $(this).val()
+        if ($(this).val() != "manual") {
+            focusandcontextbrush("change", "#Brushview", global_obj, select_strengths, causes_max, vertical_order, horizontal_order)
+        }
+    })
+
+    var $verticalRadioBox = $("input:radio[name=verticalRadioBox]");
+    $verticalRadioBox.on("change", function () {
+        console.log($(this).val())
+        vertical_order = $(this).val()
+        if ($(this).val() != "manual") {
+            focusandcontextbrush("change", "#Brushview", global_obj, select_strengths, causes_max, vertical_order, horizontal_order)
+        }
+    })
+
+    var $searchFromRadioBox = $("input:radio[name=searchFrom]");
+    $searchFromRadioBox.on("change", function () {
+        console.log($(this).val())
+        if ($(this).val() == "individual") {
+            searchFromIndividual = 1;
+        }
+        else {
+            searchFromIndividual = 0;
+        }
+    })
+
+    Slider_filter_strength("#causal-strength-filter1", "#causal-strength-filter2")
+
+    var filename = "result_19_event"
+
+    $("#dataset").change(function () {
+        filename = $("#dataset :selected").val();
+        if (filename === "combine_mscbn_top16_part2" || filename === "combine_msnbc_17_events_part2") {
+            event_color = event_color2;
+            cluster_order = cluster_order2;
+        }
+        else {
+            event_color = event_color1;
+            cluster_order = cluster_order1;
+        }
+        drawgraphdataset = {};
+            nodes = [];
+            links = []
+            links_Set = new Set()
+            dhgs = []
+            lineList = []
+
+        //还原过滤的参数
+        Slider_filter_strength("#causal-strength-filter1", "#causal-strength-filter2")
+        $("input[inputmode='decimal']").val(3)
+        
+        $.getJSON("./../EventCausalityAnalysis/data/combineAndSingleResult/" + filename + ".json", function (data) {
+            global_obj = data
+            d3.select("#Brushview").selectAll("*").remove()
+            d3.select("#svg_multilevel_focus").selectAll("*").remove()
+            d3.select("#svg_multilevel_side1").selectAll("*").remove()
+            d3.select("#svg_multilevel_side2").selectAll("*").remove()
+            d3.select("#svg_multilevel_transition1").selectAll("*").remove()
+            d3.select("#svg_multilevel_transition2").selectAll("*").remove()
+            d3.select("#event_name_svg").selectAll("*").remove()
+            d3.select("#event_small_barchart_svg").selectAll("*").remove()
+
+            focusandcontextbrush("initial", "#Brushview", global_obj)     //初始化
+            // Draw(div, dataset, event2namefortooltip, strength, sort_method(1:第一种方式，不对原因个数进行排序；2：第二种方式，先对原因个数进行升序排列，再对因果强度进行降序排列))
+        })
+    })
+
+
+    //var filename = "combine_mscbn_top16_part2"
+    // var filename = "combine_msnbc_17_events_part2"
+    //$.getJSON("./../EventCausalityAnalysis/data/combineAndSingleResult/result_19_event.json", function (data) {
+    //var filename = "combine_msnbc_17_events_part2"
+    //$.getJSON("./../EventCausalityAnalysis/data/combineAndSingleResult/result_19_event.json", function (data) {
+    //$.getJSON("./../EventCausalityAnalysis/data/combineAndSingleResult/combine_shopping_top15_part2.json", function (data) {
+    //$.getJSON("./../EventCausalityAnalysis/data/combineAndSingleResult/combine_mscbn_top16_part2.json", function (data) {
+    //$.getJSON("./../EventCausalityAnalysis/data/combineAndSingleResult/combine_31_events_part2_0.5f.json", function (data) {
+
+
+    $.getJSON("./../EventCausalityAnalysis/data/combineAndSingleResult/" + filename + ".json", function (data) {
+        global_obj = data
+        if (filename === "combine_mscbn_top16_part2" || filename === "combine_msnbc_17_events_part2") {
+            event_color = event_color2;
+            cluster_order = cluster_order2;
+        }
+        else {
+            event_color = event_color1;
+            cluster_order = cluster_order1;
+        }
+        focusandcontextbrush("initial", "#Brushview", global_obj)     //初始化
+        // Draw(div, dataset, event2namefortooltip, strength, sort_method(1:第一种方式，不对原因个数进行排序；2：第二种方式，先对原因个数进行升序排列，再对因果强度进行降序排列))
+    })
+
+
+</script>
+</body>
+
+</html>
