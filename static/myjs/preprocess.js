@@ -573,11 +573,24 @@ function barchartdata(sequence_para) {
 //交互：增加一条查询
 function add_query() {
 
-    //从单因果里面查询
-    if (searchFromIndividual === 1) {
-        let query_source = document.getElementById("input-select-source").value
-        let query_target = document.getElementById("input-select-target").value
-        all_query_history.push("history")
+    let query_source = document.getElementById("input-select-source").value
+    let query_target = document.getElementById("input-select-target").value
+    let query_source_order;
+    let query_target_order;
+    //如果输入的是名称
+    if (parseInt(query_source).toString() == "NaN") {
+        query_source_order = getEventOrderByName(query_source, nodes)
+        query_target_order = getEventOrderByName(query_target, nodes)
+    }
+    //如果输入的是索引
+    else {
+        query_source_order = getEventOrderById(parseInt(query_source), nodes)
+        query_target_order = getEventOrderById(parseInt(query_target), nodes)
+    }
+    let tempgraph = getDijPath(drawgraphdataset, query_source, query_target)
+    console.log(tempgraph)
+    all_query_history.push("history")
+    if (tempgraph.nodes === null && tempgraph.edges === null) {
         let newDiv = document.createElement("div");
         newDiv.setAttribute("id", "propagation" + all_query_history.length);
         newDiv.setAttribute("style", "width:20px;height:20px");
@@ -589,47 +602,14 @@ function add_query() {
         newCannotFound.setAttribute("id", "newCannotFound" + all_query_history.length)
         newCannotFound.setAttribute("class", "newCannotFound")
         newCannotFound.innerHTML = '<p class="p8"> No propagation</p>'
-        +'<p class="p8">from <span style="color: red">' + query_source + '</span></p>'
-        +'<p class="p8"> to <span style="color: red">'+query_target +'</span></p>'
-        +'<p class="p8"> in individual causality</p>';
+            + '<p class="p8">from <span style="color: red">' + query_source + '</span></p>'
+            + '<p class="p8"> to <span style="color: red">' + query_target + '</span></p>'
+            + '<p class="p8"> in <span style="color: red">'+searchArea+'</span>'
+            +' causality data</p>';
         document.getElementById("query-history-list").appendChild(newCannotFound);
-
-        // d3.select("#newCannotFound" + all_query_history.length)
-        // .append("svg")
-        // .attr("width","180px")
-        // .attr("height","100px")
-
-
-        // document.getElementById("query-history-list").appendChild(newCannotFound);
-        // d3.select("#newCannotFound" + all_query_history.length)
-        //     .append("text")
-        //     .text("No propagation from " + query_source + " to " + query_target + " in individual causality")
-        //     .style("font-size", "6px")
-        //     .style("font-weight", "bold")
-        //     .style("display", "true")
     }
-
     else {
-        let query_source = document.getElementById("input-select-source").value
-        let query_target = document.getElementById("input-select-target").value
-        let query_source_order;
-        let query_target_order;
-        //如果输入的是名称
-        if (parseInt(query_source).toString() == "NaN") {
-            query_source_order = getEventOrderByName(query_source, nodes)
-            query_target_order = getEventOrderByName(query_target, nodes)
-        }
-        //如果输入的是索引
-        else {
-            query_source_order = getEventOrderById(parseInt(query_source), nodes)
-            query_target_order = getEventOrderById(parseInt(query_target), nodes)
-        }
-        let tempgraph = getDijPath(drawgraphdataset, query_source, query_target)
         DrawPrppagationGraph("align-items-center", tempgraph)
-        //nametoorder
-
-        // 如果有查询结果
-        all_query_history.push("history")
         let newDiv = document.createElement("div");
         newDiv.setAttribute("id", "propagation" + all_query_history.length);
         newDiv.setAttribute("style", "width:20px;height:20px");
@@ -653,13 +633,9 @@ function add_query() {
             .style("font-size", "6px")
             .style("font-weight", "bold")
         d3.select("#smallpropagation" + all_query_history.length).style("display", "true")
-
-
     }
 
 
-
-    // // let 
     // //第一个text的内容为target，前面的text的内容为source
     // console.log(d3.select("#smallpropagation" + all_query_history.length).selectAll("g").selectAll("text"))
 
@@ -727,8 +703,8 @@ function add_query() {
     //     .attr("text-anchor", "middle") // set anchor y justification
     //     .style("fill", "#202020")
     //     .style("font-size", "12px")
-    //     .style("font-family",' Arial, sans-serif')
-    //     .style("font-weight",'normal')
+    //     .style("font-family", ' Arial, sans-serif')
+    //     .style("font-weight", 'normal')
 
 
     // let smallbarchartyscale = d3.scaleLinear()
@@ -755,14 +731,14 @@ function add_query() {
     //     })
     //     .attr("width", smallbarwidth * 0.9)
     //     .attr("x", function (d, i) {
-    //         return smallbarwidth * (i + 0.05) +margin_left_right
+    //         return smallbarwidth * (i + 0.05) + margin_left_right
     //     })
     //     .attr("y", function (d) {
     //         if (d > 1) {
-    //             return g_height - margin_top_bottom  - smallbarchartyscale(Math.log2(d));
+    //             return g_height - margin_top_bottom - smallbarchartyscale(Math.log2(d));
     //         }
     //         else {
-    //             return  g_height - margin_top_bottom  - smallbarchartyscale(d);
+    //             return g_height - margin_top_bottom - smallbarchartyscale(d);
     //         }
     //     })
     //     .style("fill", function (d) {
@@ -770,9 +746,6 @@ function add_query() {
     //     })
     //     .style("stroke", "none")
     //     .style("opacity", 0.8)
-
-
-
 }
 
 // //交互：增加一条查询
@@ -1076,50 +1049,53 @@ function getColorByName(name, arr) {
 
 // }
 
-function getDijPathV0(graphdataset, source, target) {
-    let nodes = [];
-    let paths = [];
-    for (let i = 0; i < graphdataset.nodes.length; i++)
-        nodes.push({
-            "index": graphdataset.nodes[i].order,
-            "value": graphdataset.nodes[i].id,
-            "r": 10
-        })
-    let rows = graphdataset.nodes.length, columns = graphdataset.nodes.length;
-    let arr = [];
-    for (let r = 0; r < rows; r++) {
-        arr[r] = Array.apply(null, Array(columns)).map(function (i) {
-            return 0;
-        });
-    }
-    for (let j = 0; j < graphdataset.links.length; j++) {//如果小于0则不继续划分
-        let x = graphdataset.links[j].source_order[0];
-        let y = graphdataset.links[j].target_order;
-        if (graphdataset.links[j].strength > 0 && arr[x][y] === 0) {
-            arr[x][y] = 1;
-            paths.push({
-                "source": graphdataset.links[j].source_order[0],//有很多个点融合？所以取第几个都是一样？
-                "target": graphdataset.links[j].target_order,//用索引值
-                "distance": graphdataset.links[j].strength * 100 //放大一百倍
-            })
-        }
-    }
-    let sp1 = new ShortestPathCalculator(nodes, paths);
+// function getDijPathV0(graphdataset, source, target) {
+//     let nodes = [];
+//     let paths = [];
+//     for (let i = 0; i < graphdataset.nodes.length; i++)
+//         nodes.push({
+//             "index": graphdataset.nodes[i].order,
+//             "value": graphdataset.nodes[i].id,
+//             "r": 10
+//         })
+//     let rows = graphdataset.nodes.length, columns = graphdataset.nodes.length;
+//     let arr = [];
+//     for (let r = 0; r < rows; r++) {
+//         arr[r] = Array.apply(null, Array(columns)).map(function (i) {
+//             return 0;
+//         });
+//     }
+//     for (let j = 0; j < graphdataset.links.length; j++) {//如果小于0则不继续划分
+//         let x = graphdataset.links[j].source_order[0];
+//         let y = graphdataset.links[j].target_order;
+//         if (graphdataset.links[j].strength > 0 && arr[x][y] === 0) {
+//             arr[x][y] = 1;
+//             paths.push({
+//                 "source": graphdataset.links[j].source_order[0],//有很多个点融合？所以取第几个都是一样？
+//                 "target": graphdataset.links[j].target_order,//用索引值
+//                 "distance": graphdataset.links[j].strength * 100 //放大一百倍
+//             })
+//         }
+//     }
+//     let sp1 = new ShortestPathCalculator(nodes, paths);
 
-    // var route = sp1.findRoute(0,graphdataset.nodes.length-1);
-    let route = sp1.findRoute(source, target);//5-》9的最短路径
-    let result = sp1.formatResult();
-    //result反向输出
-    let path_nodes = []
-    let path_edges = []
-    for (let j = result.length - 1; j > 0; j--) {
-        path_nodes.push({ "id": result[j], "eventname": getEventNameById(result[j], graphdataset.nodes) })
-        path_edges.push({ "nodes": [result[j], result[j - 1]], "strength": result[i].strength })
-    }
-    path_nodes.push({ "id": result[0], "eventname": getEventNameById(result[0], graphdataset.nodes) })
-    console.log('result', result);
-    return { "nodes": path_nodes, "edges": path_edges };
-}
+//     // var route = sp1.findRoute(0,graphdataset.nodes.length-1);
+//     let route = sp1.findRoute(source, target);//5-》9的最短路径
+//     if(route.mesg === "OK" && route.distance === 0){
+//         return { "nodes": null, "edges": null };
+//     }
+//     let result = sp1.formatResult();
+//     //result反向输出
+//     let path_nodes = []
+//     let path_edges = []
+//     for (let j = result.length - 1; j > 0; j--) {
+//         path_nodes.push({ "id": result[j], "eventname": getEventNameById(result[j], graphdataset.nodes) })
+//         path_edges.push({ "nodes": [result[j], result[j - 1]], "strength": result[i].strength })
+//     }
+//     path_nodes.push({ "id": result[0], "eventname": getEventNameById(result[0], graphdataset.nodes) })
+//     console.log('result', result);
+//     return { "nodes": path_nodes, "edges": path_edges };
+// }
 
 
 
@@ -1138,21 +1114,47 @@ function getDijPath(graphdataset, startname, endname) {
             "index": graphdataset.nodes[i].order,
             "value": graphdataset.nodes[i].id
         })
-    // console.log("node")
-    // console.log(node)
+
     let n = 0;
-    for (let j = 0; j < graphdataset.links.length; j++) {//存放nodes
+    let tempsinglelinks;
+    if (searchArea === "individual") {
+        tempsinglelinks = graphdataset.links.filter(link => (link.source_order.length == 1));
+    }
+    else if (searchArea === "combined") {
+        tempsinglelinks = graphdataset.links.filter(link => (link.source_order.length > 1));
+    }
+    else {
+        tempsinglelinks = graphdataset.links;
+    }
+
+    for (let j = 0; j < tempsinglelinks.length; j++) {//存放nodes
         let value_array = [];
-        if (Array.isArray(graphdataset.links[j].source_order))//如果是数组
-            value_array = graphdataset.links[j].source_order;
+        if (Array.isArray(tempsinglelinks[j].source_order))//如果是数组
+            value_array = tempsinglelinks[j].source_order;
         else
-            value_array.push(graphdataset.links[j].source_order);
+            value_array.push(tempsinglelinks[j].source_order);
         let tarvalue_array = [];
-        if (Array.isArray(graphdataset.links[j].target_order))//如果是数组
-            tarvalue_array = graphdataset.links[j].target_order;
+        if (Array.isArray(tempsinglelinks[j].target_order))//如果是数组
+            tarvalue_array = tempsinglelinks[j].target_order;
         else
-            tarvalue_array.push(graphdataset.links[j].target_order);
-        if (!(nodes_flag.has(value_array.toString()))) {
+            tarvalue_array.push(tempsinglelinks[j].target_order);
+
+        for(let i=0;i<value_array.length;i++){
+            let tempppppp = []
+            tempppppp.push(value_array[i])
+            if (!(nodes_flag.has(tempppppp.toString()))) {
+                nodes.push({//多个点看成一个点
+                    "index": n,
+                    "value": tempppppp,//可能会出现 2 [2]
+                    "r": 10
+                })
+                nodes_index.set(tempppppp.toString(), n);
+                nodes_flag.add(tempppppp.toString());//节点是否存在
+                n++;
+            }
+        }
+
+        if (value_array.length>1 && !(nodes_flag.has(value_array.toString()))) {
             nodes.push({//多个点看成一个点
                 "index": n,
                 "value": value_array,//可能会出现 2 [2]
@@ -1162,7 +1164,23 @@ function getDijPath(graphdataset, startname, endname) {
             nodes_flag.add(value_array.toString());//节点是否存在
             n++;
         }
-        if (!(nodes_flag.has(tarvalue_array.toString()))) {
+
+        for(let i=0;i<tarvalue_array.length;i++){
+            let tempppppp = []
+            tempppppp.push(tarvalue_array[i])
+            if (!(nodes_flag.has(tempppppp.toString()))) {
+                nodes.push({//多个点看成一个点
+                    "index": n,
+                    "value": tempppppp,//可能会出现 2 [2]
+                    "r": 10
+                })
+                nodes_index.set(tempppppp.toString(), n);
+                nodes_flag.add(tempppppp.toString());//节点是否存在
+                n++;
+            }
+        }
+
+        if (tarvalue_array.length>1 && !(nodes_flag.has(tarvalue_array.toString()))) {
             nodes.push({//多个点看成一个点
                 "index": n,
                 "value": tarvalue_array,
@@ -1173,22 +1191,23 @@ function getDijPath(graphdataset, startname, endname) {
             n++;
         }
     }
-
-    for (let k = 0; k < graphdataset.links.length; k++) {//如果小于0则不继续划分
-        if ((source_target.get(graphdataset.links[k].source_order) !== graphdataset.links[k].target_order)) {
-            source_target.set(graphdataset.links[k].source_order, graphdataset.links[k].target_order);
+    console.log(nodes_index)
+    for (let k = 0; k < tempsinglelinks.length; k++) {//如果小于0则不继续划分
+        if ((source_target.get(tempsinglelinks[k].source_order) !== tempsinglelinks[k].target_order)) {
+            source_target.set(tempsinglelinks[k].source_order, tempsinglelinks[k].target_order);
             let value_array = [];
-            if (Array.isArray(graphdataset.links[k].source_order))//如果是数组
-                value_array = graphdataset.links[k].source_order;
+            if (Array.isArray(tempsinglelinks[k].source_order))//如果是数组
+                value_array = tempsinglelinks[k].source_order;
             else
-                value_array.push(graphdataset.links[k].source_order);
+                value_array.push(tempsinglelinks[k].source_order);
             let tarvalue_array = [];
-            if (Array.isArray(graphdataset.links[k].target_order))//如果是数组
-                tarvalue_array = graphdataset.links[k].target_order;
+            if (Array.isArray(tempsinglelinks[k].target_order))//如果是数组
+                tarvalue_array = tempsinglelinks[k].target_order;
             else
-                tarvalue_array.push(graphdataset.links[k].target_order);
+                tarvalue_array.push(tempsinglelinks[k].target_order);
             for (let a = 0; a < value_array.length; a++)//如果跟nodes同时push会导致搜不到节点
             {
+                
                 let valuesingle_array = [];
                 valuesingle_array.push(value_array[a]);
                 let source_array = [];
@@ -1198,13 +1217,14 @@ function getDijPath(graphdataset, startname, endname) {
                     //"source": nodes_index.get(value_array.toString()),//索引
                     "target": nodes_index.get(tarvalue_array.toString()),//用索引值
                     //"target_value":graphdataset.links[j].target_order,
-                    "distance": graphdataset.links[k].strength * 100,//放大一百倍
+                    "distance": tempsinglelinks[k].strength * 100,//放大一百倍
                     "array_index": nodes_index.get(value_array.toString()),
                     "array_value": value_array.toString()
                 })
             }
         }
     }
+
     var sp1 = new ShortestPathCalculator(nodes, paths);
     // var startname='Kossacks_for_Sanders'//21 在此输入起点
     // var endname='thewalkingdead'//3 在此输入终点
@@ -1214,6 +1234,12 @@ function getDijPath(graphdataset, startname, endname) {
     let startnode = nodes_index.get(getOrderByName(startname, graphdataset.nodes).toString());//根据初始索引值value找key
     let endnode = nodes_index.get(getOrderByName(endname, graphdataset.nodes).toString());//根据初始索引值value找key
     var route = sp1.findRoute(startnode, endnode);//输入节点index
+    if (route.mesg === "OK" && route.distance === 0) {
+        return { "nodes": null, "edges": null };
+    }
+    if (route.mesg === "No path found") {
+        return { "nodes": null, "edges": null };
+    }
     var resulttemp = sp1.formatResult();
 
 

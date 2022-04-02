@@ -35,17 +35,23 @@ ShortestPathCalculator.SpcError = function(code, message) {
 
 ShortestPathCalculator.prototype.findRoute = function(source, target) {
 
-	if(!ShortestPathCalculator.isInteger(source) || !ShortestPathCalculator.isInteger(target))
-		throw new ShortestPathCalculator.SpcError(20, "Source and target must be ints");
+	// if(!ShortestPathCalculator.isInteger(source) || !ShortestPathCalculator.isInteger(target))
+	// 	// throw new ShortestPathCalculator.SpcError(20, "Source and target must be ints");
+	// 	this.result = "Source and target must be ints";
 
-	if(source > this.nodes.length - 1|| target > this.nodes.length - 1)
-		throw new ShortestPathCalculator.SpcError(21, "Source or target put of range");
+	// else if(source > this.nodes.length - 1|| target > this.nodes.length - 1)
+	// 	//throw new ShortestPathCalculator.SpcError(21, "Source or target put of range");
+	// 	this.result = "Source or target put of range";
 
-	this.makeDistanceArrayFromNodes();
+	//else {
 
-	this.populateDistances();
+		this.makeDistanceArrayFromNodes();
 
-	this.result = this.dijkstra(source, target);
+		this.populateDistances();
+	
+		this.result = this.dijkstra(source, target);
+	//}
+
 	console.log(this.result)
 	return this.result;
 
@@ -67,6 +73,8 @@ ShortestPathCalculator.prototype.makeDistanceArrayFromNodes = function() {
 
 ShortestPathCalculator.prototype.populateDistances = function() {
 	this.source_index = new Map();
+	console.log("paths of spc")
+	console.log(this.paths)
 	for(var i=0; i<this.paths.length; i++) {
 		var s = parseInt(this.paths[i].source);
 		var t = parseInt(this.paths[i].target);
@@ -194,6 +202,7 @@ ShortestPathCalculator.prototype.formatResult = function() {
 
 	res += "Path   : "+'\n';
 	let result_path =[]
+	
 	for(var i=0; i<this.result.path.length; i++) {
 		var sourceNodeIndex = this.result.path[i].source;
 		//console.log(this.result.path[i]);

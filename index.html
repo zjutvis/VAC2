@@ -45,7 +45,6 @@
         fill: steelblue;
     }
 </style>
-</head>
 
 <body>
     <div class="title_div"></div>
@@ -82,7 +81,7 @@
                             <option value="result_19_event" selected style="display: none">Reddit</option>
                             <option value="result_19_event">Reddit</option>
                             <option value="combine_mscbn_top16_part2">Website_top16</option>
-                            <option value="combine_msnbc_17_events_part2">Website_17</option>
+                            <!-- <option value="combine_msnbc_17_events_part2">Website_17</option> -->
                         </select>
                     </div>
 
@@ -224,7 +223,7 @@
                             <div>
                                 <input type="radio" name="searchFrom" id="rb1" value="filtered" checked="checked" />
                                 <label class="radiotexForsearchFrom" for="rb1">
-                                    filtered results</label>
+                                    all results</label>
                             </div>
 
                         </div>
@@ -266,9 +265,8 @@
                                 <p class="p5">edit</p>
                                 <button id="delete_a_link_button" data-toggle="popover" data-placement="top"
                                     data-original-title=""
-                                    data-content="Click a circle with arc to delete a causal link"
-                                    aria-describedby="tooltip" class="mcv-hidden-button"
-                                    onclick="delete_a_link_button()">
+                                    data-content=""
+                                    aria-describedby="tooltip" class="mcv-hidden-button">
                                     <svg t="1646653167385" class="editicon" viewBox="0 0 1024 1024" version="1.1"
                                         style="margin-top: 0px; margin-left:20px" xmlns="http://www.w3.org/2000/svg"
                                         p-id="3715" width="24" height="24" id="delete_a_link_svg">
@@ -280,7 +278,7 @@
 
                                 <a tabindex="0" id="delete_a_link_button" class="mcv-hidden-button" role="button"
                                     data-toggle="popover" data-trigger="focus" title=""
-                                    data-content="Click a circle with arc to delete a causal link" data-placement="top"
+                                    data-content="Double Click a circle with arc to delete a causal link" data-placement="top"
                                     onclick="delete_a_link_button()">
                                     <svg t="1646653128996" class="editicon" viewBox="0 0 1024 1024" version="1.1"
                                         style="margin-top: 0px; margin-left:10px" xmlns="http://www.w3.org/2000/svg"
@@ -324,7 +322,8 @@
             </td>
             <!-- hypergraph -->
             <td class="mcv-hypergraph-fixed">
-                <div id="mcv-hypergraphContainer-panel" class="panel panel-default mcv-clearfix">
+                <!-- <td class="mcv-hypergraph-fixed" style="display:none;"> -->
+                <div id="mcv-hypergraphContainer-panel" class="panel panel-default mcv-clearfix" style="display:none;">
                     <div id="mcv-hypergraphContainer" class="col-md-12 panel-body">
                         <button type="button" class="btn btn-primary btn-block"
                             style="width:239px;height:25px;background:rgb(22,18,61)" onclick="genSandbox()">
@@ -380,8 +379,6 @@
 <script type="text/javascript" src="./static/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="./static/myjs/globalVariables.js"></script>
 <script type="text/javascript" src="./static/myjs/preprocess.js"></script>
-<script type="text/javascript" src="./static/myjs/DrawMainUsePath.js"></script>
-<script type="text/javascript" src="./static/myjs/DrawCausalityDAG.js"></script>
 <script type="text/javascript" src="./static/myjs/ShortestPathCalculator.js"></script>
 <script type="text/javascript" src="./static/myjs/jLouvain.js"></script>
 <script type="text/javascript" src="./static/myjs/DrawBarChart.js"></script>
@@ -389,26 +386,19 @@
 <script src="./static/myjs_zsj/Slider.js"></script>
 <script type="text/javascript" src="./static/myjs_zsj/DrawPieChart.js"></script>
 
-<!--<script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
-<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>-->
 <script src="./static/js/d3-interpolate.v1.min.js"></script>
 <script src="./static/js/d3-scale-chromatic.v1.min.js"></script>
 <script src="./static/js/bootstrap-input-spinner.js"></script>
 
 <script type="text/javascript" src="./static/myjs_zsj/FocusContext.js"></script>
-
 <script type="text/javascript" src="./static/myjs_zsj/BrushUpdate.js"></script>
-<script type="text/javascript" src="./static/myjs_zsj/MultiLevelVis.js"></script>
 <script type="text/javascript" src="./static/myjs_zsj/ContextVis.js"></script>
-<!--<script type="text/javascript" src="./static/myjs/CenterVis.js"></script>-->
 <script type="text/javascript" src="./static/myjs_zsj/MultiLevelCenter.js"></script>
 <script type="text/javascript" src="./static/myjs_zsj/MultiLevelSide12.js"></script>
 <script type="text/javascript" src="./static/myjs_zsj/DrawPropagation.js"></script>
 
 
 <!--Draw Propagation-->
-<script src="./lib/jquery-3.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-    crossorigin="anonymous"></script>
 <link href="./static/myjs_zsj/PropagationPath/css/neumorph.min.css" rel="stylesheet">
 <link rel="canonical" href="https://getbootstrap.com/docs/4.0/examples/starter-template/">
 <!-- Bootstrap core CSS -->
@@ -425,7 +415,6 @@
 <script src="./static/myjs_zsj/PropagationPath//js/readFromJson.js"></script>
 <script src="./static/myjs_zsj/PropagationPath//js/GroupCreation.js"></script>
 
-<script type="text/javascript" src="./static/myjs_zsj/GlobalFunctions.js"></script>
 
 
 <script type="text/javascript" src="./static/js/d3-interpolate.v1.min.js"></script>
@@ -451,7 +440,7 @@
 
     var maxCountInAPeriod = 0
     var max_date = 0
-    var searchFromIndividual = 0
+    var searchArea = "filtered"
     $('#mcv-select-delete-source-button').click(function () {
         $("#input-select-source").val($(this).attr('placeholder'));
     });
@@ -512,13 +501,14 @@
 
     var $searchFromRadioBox = $("input:radio[name=searchFrom]");
     $searchFromRadioBox.on("change", function () {
-        console.log($(this).val())
-        if ($(this).val() == "individual") {
-            searchFromIndividual = 1;
-        }
-        else {
-            searchFromIndividual = 0;
-        }
+        searchArea = $(this).val()
+        // console.log($(this).val())
+        // if ($(this).val() == "individual") {
+        //     searchFromIndividual = 1;
+        // }
+        // else {
+        //     searchFromIndividual = 0;
+        // }
     })
 
     Slider_filter_strength("#causal-strength-filter1", "#causal-strength-filter2")
@@ -589,6 +579,5 @@
 
 
 </script>
-</body>
 
 </html>
