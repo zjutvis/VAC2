@@ -116,7 +116,16 @@ function Draw12_Contex(operation, div, dataset, event2namefortooltip, strength, 
         .style("opacity", 0.1)
         .on("click", function (d, i) {
             //reorderingLineList()
-
+            var clicked_name = d.name;
+            if (writetosource === 1) {
+                $("#input-select-source").val(clicked_name);
+                console.log("clicked!!!")
+                writetosource = 0
+            }
+            else {
+                $("#input-select-target").val(clicked_name);
+                writetosource = 1
+            }
 
             d3.select("#Brushview").selectAll("*").remove()
             d3.select("#svg_multilevel_focus").selectAll("*").remove()
@@ -322,7 +331,19 @@ function Draw12_Contex(operation, div, dataset, event2namefortooltip, strength, 
         .attr("id", function (d, i) {
             return d.eventname
         })
-        .attr("transform", (d, i) => "translate(0," + i * text_y + ")");
+        .attr("transform", (d, i) => "translate(0," + i * text_y + ")")
+        .on("click", function(d, i){
+            var clicked_name = d.eventname;
+            if (writetosource === 1) {
+                $("#input-select-source").val(clicked_name);
+                console.log("clicked!!!")
+                writetosource = 0
+            }
+            else {
+                $("#input-select-target").val(clicked_name);
+                writetosource = 1
+            }
+        });
 
     smallBarCharts
         .append("rect")
