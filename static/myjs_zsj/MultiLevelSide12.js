@@ -93,7 +93,7 @@ function MultiLevel_Draw12_Side12(svgid, left, widthtemp, selectedgroups, border
             .style("fill", function (d, i) {
                 return d.color
             })
-            .style("opacity", 0.2)
+            .style("opacity", 0.12)
             .on("click", function (d) {
                 if (writetosource === 1) {
                     $("#input-select-source").val(d.name);

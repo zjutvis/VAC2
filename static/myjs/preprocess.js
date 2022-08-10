@@ -79,7 +79,7 @@ function getCausalLink(operation, dataset, event2namefortooltip, strength, sort_
                         "source": source,
                         "target": targetid,
                         "strength": strength,
-                        "source_order": source_order.sort(),
+                        "source_order": source_order.sort(function(a,b){return a-b}),
                         "target_order": event_order.get(targetid.toString()),
                         "isfirst": 0
                     })
@@ -134,7 +134,64 @@ function getCausalLink(operation, dataset, event2namefortooltip, strength, sort_
     else if (operation === "change") {      //operation:"change"    改变order
         //vertical_order的操作
         if (vertical_order === "id") {
-            //do nothing
+            // links.filter(link => (link.strength <= select_strengths[0] || link.strength >= select_strengths[1]))
+            let singlecausality = links.filter(link => (link.source.length ==1))
+            //尽量紧凑
+            let neworder = [nodes[0]]
+            for(let t = 0 ; t < nodes.length; t ++ ){
+                //target
+                if(!neworder.some(node => ( node.id == nodes[t].id ))){
+                    neworder.push(  nodes.find(node => (node.id == nodes[t].id )) )
+                }
+
+
+                //source
+                var sourcetemp = singlecausality.filter(link =>(link.target == nodes[t].id))
+                for(let p = 0 ; p < sourcetemp.length; p ++ ){
+                    //if( neworder.some(node => node.id == singlecausality[p].target ) ) { //target一致
+                        if(!neworder.some(node => (node.id == sourcetemp[p].source[0]))){//且不存在该元素
+                            neworder.push(  nodes.find(node => (node.id == sourcetemp[p].source[0])) ) //因为已经filter length ==1,所以[0]
+                        }
+                   // }
+                }
+            }
+            // neworder.forEach(function(d,i){
+            //     d.order = i
+            // })
+            // console.log("new order ")
+            // console.log(neworder)
+
+
+            nodes = neworder
+
+            for (let i = 0; i < nodes.length; i++) {
+                old_new_order.set(nodes[i].order, i)
+                nodes[i].order = i;
+                event_order.set(nodes[i].id, nodes[i].order);
+            }
+            drawgraphdataset.nodes = nodes;
+            //把link的id改过来
+            for (let i = 0; i < links.length; i++) {
+                links[i].isfirst = 0;
+                for (let j = 0; j < links[i].source_order.length; j++) {
+                    links[i].source_order[j] = old_new_order.get(links[i].source_order[j])
+                }
+                links[i].target_order = old_new_order.get(links[i].target_order)
+                links[i].source_order = links[i].source_order.sort(function(a,b){return a-b})
+            }
+
+
+            //links排序
+            links = sortLinks(links, sort_method)
+            drawgraphdataset.links = links.filter(link => (link.strength <= select_strengths[0] || link.strength >= select_strengths[1]))
+            for (let i = 0; i < drawgraphdataset.links.length; i++) {
+                drawgraphdataset.links[i].isfirst = 0
+            }
+            drawgraphdataset.lineList = (convertLinkToList(drawgraphdataset.links)).filter(line => ((line.source_and_order.length + 1) <= select_max_causes))
+            drawgraphdataset.links = restoreLinksFromLineList(drawgraphdataset.lineList)
+
+
+
         }
         else if (vertical_order === "alphabetical") {
             //给nodes按照字母排序
@@ -152,7 +209,7 @@ function getCausalLink(operation, dataset, event2namefortooltip, strength, sort_
                     links[i].source_order[j] = old_new_order.get(links[i].source_order[j])
                 }
                 links[i].target_order = old_new_order.get(links[i].target_order)
-                links[i].source_order = links[i].source_order.sort()
+                links[i].source_order = links[i].source_order.sort(function(a,b){return a-b})
             }
 
 
@@ -174,7 +231,7 @@ function getCausalLink(operation, dataset, event2namefortooltip, strength, sort_
                     links[i].source_order[j] = old_new_order.get(links[i].source_order[j])
                 }
                 links[i].target_order = old_new_order.get(links[i].target_order)
-                links[i].source_order = links[i].source_order.sort()
+                links[i].source_order = links[i].source_order.sort(function(a,b){return a-b})
             }
 
             //links排序
@@ -206,7 +263,7 @@ function getCausalLink(operation, dataset, event2namefortooltip, strength, sort_
                     links[i].source_order[j] = old_new_order.get(links[i].source_order[j])
                 }
                 links[i].target_order = old_new_order.get(links[i].target_order)
-                links[i].source_order = links[i].source_order.sort()
+                links[i].source_order = links[i].source_order.sort(function(a,b){return a-b})
             }
 
             //links排序
@@ -298,15 +355,39 @@ function getCausalLink(operation, dataset, event2namefortooltip, strength, sort_
 function getCausalLinkWithDelete(operation, dataset, event2namefortooltip, strength, sort_method, select_strengths, select_max_causes, vertical_order, horizontal_order) {
     //给的是drawdata里面的数据 但是要保证从link删除
 
-    links = links.filter(function (item) {
-        return item.source_order.length != drawgraphdataset.links[deletedIndexOfLinks].source_order.length ||
-            item.strength != drawgraphdataset.links[deletedIndexOfLinks].strength || item.target_order != drawgraphdataset.links[deletedIndexOfLinks].target_order
-    });
-    if (deletedIndexOfLinks != -1) {
-        // console.log("will delete")
-        // console.log(links.splice(deletedIndexOfLinks, 1));
-        console.log(drawgraphdataset.links.splice(deletedIndexOfLinks, 1));
+    if (deletflagstatus === "circle") {
+        links = links.filter(function (item) {
+            return item.source_order.length != drawgraphdataset.links[deletedIndexOfLinks].source_order.length ||
+                item.strength != drawgraphdataset.links[deletedIndexOfLinks].strength || item.target_order != drawgraphdataset.links[deletedIndexOfLinks].target_order
+        });
+        if (deletedIndexOfLinks != -1) {
+            // console.log("will delete")
+            // console.log(links.splice(deletedIndexOfLinks, 1));
+            console.log(drawgraphdataset.links.splice(deletedIndexOfLinks, 1));
+        }
     }
+    else if (deletflagstatus === "entity") {
+        // links = links.filter(obj=>
+        //     obj.target_order !== deletedIndexOfEntity
+        // )
+        //  links = links.filter(obj=>
+        //     !obj.source_order.includes(deletedIndexOfEntity)
+        // )
+        links = links.filter(obj =>
+        (!obj.source_order.includes(deletedIndexOfEntity)
+            & (obj.target_order !== deletedIndexOfEntity))
+        )
+
+
+
+        // for(var i = 0; i < drawgraphdataset.links.length; i++){
+        //     if(drawgraphdataset.links[i].target_order == deletedIndexOfEntity){
+        //         drawgraphdataset.links.splice(i,1);
+        //         links.splice(i, 1);
+        //     }
+        // }
+    }
+
     drawgraphdataset.links = links
     console.log("drawgraphdataset.links.length" + drawgraphdataset.links.length)
     drawgraphdataset.links = (drawgraphdataset.links).filter(link => (link.strength <= select_strengths[0] || link.strength >= select_strengths[1]))
@@ -342,6 +423,64 @@ function getCausalLinkWithDelete(operation, dataset, event2namefortooltip, stren
     return drawgraphdataset
 }
 
+//数据处理：初始化所有要用到的数据，将nodes，links，lineList存为全局变量    水平排序垂直排序分开
+function getCausalLinkWithDeleteEntity(operation, dataset, event2namefortooltip, strength, sort_method, select_strengths, select_max_causes, vertical_order, horizontal_order) {
+    //给的是drawdata里面的数据 但是要保证从link删除
+
+    //deletedIndexOfEntity,删除一行数据
+    // for(var deletedIndexOfEntityitem in deletedIndexOfEntity){
+    //         links = links.filter(function (item) {
+    //     return item.source_order.length != drawgraphdataset.links[deletedIndexOfEntityitem].source_order.length ||
+    //         item.strength != drawgraphdataset.links[deletedIndexOfEntityitem].strength || item.target_order != drawgraphdataset.links[deletedIndexOfEntityitem].target_order
+    // });
+    // }
+    if (deletedIndexOfEntity != -1) {
+        // console.log("will delete")
+        // console.log(links.splice(deletedIndexOfLinks, 1));
+        for (var i = 0; i < drawgraphdataset.links.length; i++) {
+            if (drawgraphdataset.links[i].target_order == deletedIndexOfEntity) {
+                drawgraphdataset.links.splice(i, 1);
+            }
+        }
+    }
+
+
+    drawgraphdataset.links = links
+    console.log("drawgraphdataset.links.length" + drawgraphdataset.links.length)
+    drawgraphdataset.links = (drawgraphdataset.links).filter(link => (link.strength <= select_strengths[0] || link.strength >= select_strengths[1]))
+    console.log("drawgraphdataset.links.length" + drawgraphdataset.links.length)
+    for (let i = 0; i < drawgraphdataset.links.length; i++) {
+        drawgraphdataset.links[i].isfirst = 0
+    }
+    drawgraphdataset.lineList = (convertLinkToList(drawgraphdataset.links)).filter(line => ((line.source_and_order.length + 1) <= select_max_causes))
+    drawgraphdataset.links = restoreLinksFromLineList(drawgraphdataset.lineList)
+    //horizontal_order的操作
+    if (horizontal_order === "number") {
+        drawgraphdataset.lineList = drawgraphdataset.lineList.sort(function (a, b) { return a.source_and_order.length - b.source_and_order.length })
+        drawgraphdataset.links = restoreLinksFromLineList(drawgraphdataset.lineList)
+    }
+    else if (horizontal_order === "strength") {
+        drawgraphdataset.lineList = drawgraphdataset.lineList.sort(
+            function (a, b) {
+                // let a_value_arr = Array.from(a.source_or_order_strength.values())
+                // let b_value_arr = Array.from(b.source_or_order_strength.values())
+                let a_value_arr = Array.from(a.source_or_order_strength.map(a => a.strength))
+                let b_value_arr = Array.from(b.source_or_order_strength.map(a => a.strength))
+                return (a_value_arr.filter(d => d > 0).length - a_value_arr.filter(d => d < 0).length) - (b_value_arr.filter(d => d > 0).length - b_value_arr.filter(d => d < 0).length)
+            })
+        drawgraphdataset.links = restoreLinksFromLineList(drawgraphdataset.lineList)
+    }
+    else {      //"default"
+
+    }
+    console.log("links.length" + links.length)
+    console.log("drawgraphdataset.links.length" + drawgraphdataset.links.length)
+    console.log("lineList.length" + lineList.length)
+    console.log("drawgraphdataset.lineList.length" + drawgraphdataset.lineList)
+    return drawgraphdataset
+}
+
+
 function reorderingLineList(templineList, clickorder) {
     var temp = [];
     for (var i = 0; i < templineList.length; i++) {
@@ -361,6 +500,93 @@ function reorderingLineList(templineList, clickorder) {
     }
     return temp;
 }
+//从用户选择的数据中生成同paohvis的数据
+function getAnotherLineList(brusheddataOriginal_center) {
+    let another_paohvis = []
+    for (let i = 0; i < brusheddataOriginal_center.length; i++) {
+        //如果是单因果绑定的，不管
+        //如果是多因果绑定的，展开
+        //展开方式1：改变数据结构，对单因果和多因果都沿用同一种数据结构，每个节点都有strength信息
+        //展开方式2：将source or order分发，单因果不变，多因果只有分发出来的节点带有strength信息，在绘制时
+        //展开方式3：单因果不变，多因果展开到
+
+        //展开方式1：改变数据结构
+        //head_order
+        //no_use_order
+        //node_group
+        //source_and_order
+        //source_or_order_strength
+        //tail_order
+        //target_order
+        //is_single
+        if (brusheddataOriginal_center[i].source_and_order.length === 0) {
+            let node_group = brusheddataOriginal_center[i].node_group;
+            for (let j = 0; j < order_array.length; j++) {
+                if (node_group.get(j) == 'or')
+                    node_group.set(j, "and")
+            }
+
+            another_paohvis.push({
+                'head_order': brusheddataOriginal_center[i].head_order,
+                'no_use_order': brusheddataOriginal_center[i].no_use_order,
+                'node_group': node_group,
+                'source_and_order_strength': brusheddataOriginal_center[i].source_or_order_strength,
+                'tail_order': brusheddataOriginal_center[i].tail_order,
+                'target_order': brusheddataOriginal_center[i].target_order,
+                'is_single': 1,
+            })
+        } else {
+            //方法一
+            for (let j = 0; j < brusheddataOriginal_center[i].source_or_order_strength.length; j++) { //由j条多因果聚合在一起的
+                //公共的部分
+
+                let source_and_order_strength = [];
+                source_and_order_strength.push(brusheddataOriginal_center[i].source_or_order_strength[j]);
+                for (let k = 0; k < brusheddataOriginal_center[i].source_and_order.length; k++) {
+                    source_and_order_strength.push({
+                        'order': brusheddataOriginal_center[i].source_and_order[k],
+                        'strength': brusheddataOriginal_center[i].source_or_order_strength[j].strength,
+                        'idinlinks': brusheddataOriginal_center[i].source_or_order_strength[j].idinlinks
+                    })
+                }
+                let target_order = brusheddataOriginal_center[i].target_order;
+                let node_group = new Map(); //为每个node分组，属于no_use或者target或者and
+                let d = []
+                let head_order = order_array.length - 1;
+                let tail_order = 0;
+                for (let j = 0; j < order_array.length; j++) {
+                    if (j === target_order          //为目标点
+                        || Array.from(source_and_order_strength.map(a => a.order)).indexOf(j) != -1) {        //属于and
+                        if (j < head_order)
+                            head_order = j;
+                        if (j > tail_order)
+                            tail_order = j;
+                        continue;
+                    } else {
+                        node_group.set(j, "no")
+                        d.push(j)
+                    }
+                }
+                node_group.set(target_order, "target");
+
+                for (let k = 0; k < Array.from(source_and_order_strength.map(a => a.order)).length; k++) {
+                    node_group.set(source_and_order_strength.map(a => a.order)[k], "and")
+                }
+                another_paohvis.push({
+                    'head_order': head_order,
+                    'no_use_order': d,
+                    'node_group': node_group,
+                    'source_and_order_strength': source_and_order_strength,
+                    'tail_order': tail_order,
+                    'target_order': target_order,
+                    'is_single': 0
+                })
+
+            }
+        }
+    }
+    return another_paohvis;
+}
 function sortLinks(links, sort_method) {
     //第一种排序方式 target-因果强度
     if (sort_method === 1) {
@@ -371,7 +597,7 @@ function sortLinks(links, sort_method) {
                 }
                 return a.target_order - b.target_order;
             });
-    } else if (sort_method == 2) {
+    } else if (sort_method === 2) {
         //第二种排序方式  target-原因数量-因果强度
         links.sort(
             function (a, b) {
@@ -387,7 +613,7 @@ function sortLinks(links, sort_method) {
         links.sort(
             function (a, b) {
                 if (a.target_order === b.target_order) {
-                    if (a.source_order.length == b.source_order.length) {
+                    if (a.source_order.length === b.source_order.length) {
                         for (let i = 0; i < a.source_order.length; i++) {
                             if (a.source_order[i] === b.source_order[i]) {
                                 continue;
@@ -604,8 +830,8 @@ function add_query() {
         newCannotFound.innerHTML = '<p class="p8"> No propagation</p>'
             + '<p class="p8">from <span style="color: red">' + query_source + '</span></p>'
             + '<p class="p8"> to <span style="color: red">' + query_target + '</span></p>'
-            + '<p class="p8"> in <span style="color: red">'+searchArea+'</span>'
-            +' causality data</p>';
+            + '<p class="p8"> in <span style="color: red">' + searchArea + '</span>'
+            + ' causality data</p>';
         document.getElementById("query-history-list").appendChild(newCannotFound);
     }
     else {
@@ -1139,7 +1365,7 @@ function getDijPath(graphdataset, startname, endname) {
         else
             tarvalue_array.push(tempsinglelinks[j].target_order);
 
-        for(let i=0;i<value_array.length;i++){
+        for (let i = 0; i < value_array.length; i++) {
             let tempppppp = []
             tempppppp.push(value_array[i])
             if (!(nodes_flag.has(tempppppp.toString()))) {
@@ -1154,7 +1380,7 @@ function getDijPath(graphdataset, startname, endname) {
             }
         }
 
-        if (value_array.length>1 && !(nodes_flag.has(value_array.toString()))) {
+        if (value_array.length > 1 && !(nodes_flag.has(value_array.toString()))) {
             nodes.push({//多个点看成一个点
                 "index": n,
                 "value": value_array,//可能会出现 2 [2]
@@ -1165,7 +1391,7 @@ function getDijPath(graphdataset, startname, endname) {
             n++;
         }
 
-        for(let i=0;i<tarvalue_array.length;i++){
+        for (let i = 0; i < tarvalue_array.length; i++) {
             let tempppppp = []
             tempppppp.push(tarvalue_array[i])
             if (!(nodes_flag.has(tempppppp.toString()))) {
@@ -1180,7 +1406,7 @@ function getDijPath(graphdataset, startname, endname) {
             }
         }
 
-        if (tarvalue_array.length>1 && !(nodes_flag.has(tarvalue_array.toString()))) {
+        if (tarvalue_array.length > 1 && !(nodes_flag.has(tarvalue_array.toString()))) {
             nodes.push({//多个点看成一个点
                 "index": n,
                 "value": tarvalue_array,
@@ -1207,7 +1433,7 @@ function getDijPath(graphdataset, startname, endname) {
                 tarvalue_array.push(tempsinglelinks[k].target_order);
             for (let a = 0; a < value_array.length; a++)//如果跟nodes同时push会导致搜不到节点
             {
-                
+
                 let valuesingle_array = [];
                 valuesingle_array.push(value_array[a]);
                 let source_array = [];

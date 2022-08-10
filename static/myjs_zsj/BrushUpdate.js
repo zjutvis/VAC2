@@ -75,11 +75,11 @@ function focusandcontextbrush(operation, div, obj, select_strengths_para = [-0.3
         x_array.push(selectioncenter[1])
         x_array.push(Math.min(width, selectioncenter[1] + transition_width))
         x_array.push(width)
-        console.log(x_array)
+        //console.log(x_array)
         brushleft = selectioncenter[0]
         brushright = selectioncenter[1]
 
-        console.log(".........Brush End............" + selectioncenter)
+        //console.log(".........Brush End............" + selectioncenter)
 
         brushflag = brushflag + 1
         let selectedgroups = d3.selectAll("#Draw12_Contex").selectAll(".line_group")._groups[0]
@@ -172,6 +172,14 @@ function focusandcontextbrush(operation, div, obj, select_strengths_para = [-0.3
 
             MultiLevel_Draw12_Side12("svg_multilevel_transition2", centerwidth + side12_width1, transition12_width2, brusheddata_side2, "blue", event_count, brusheddataOriginal_transition2, nodes)
             MultiLevel_Draw12_Side12("svg_multilevel_side2", centerwidth + side12_width1 + transition12_width2, mini_side12_width2, brusheddata_side2, "blue", event_count, brusheddataOriginal_side2, nodes)
+
+            //下面的，
+            //let paohvisdata=getAnotherLineList(brusheddataOriginal_center)
+            console.log('brusheddataOriginal_center')
+            console.log(brusheddataOriginal_center)
+            //console.log("another_paohvis")
+            //console.log(paohvisdata)
+            //DrawFocusacausality("svg_BottomFocusContainer_focus", 200+side12_width1, centerwidth, brusheddata_center, event_count, paohvisdata, nodes)//比例和左距离和id
 
             d3.selectAll(".gInteractionLine").remove()
 

@@ -17,13 +17,15 @@ var path = gtemp
     .outerRadius(radiustemp)
   )
   .attr('fill', function(d){
-      if (d.data.flag)
-          return(colorScaletemp(d.data.value))
-      else
-          return(colorScaletemp(0 - d.data.value))
+      return "rgb(126,195,128)"//测试
+      // if (d.data.flag)
+      //     return(colorScaletemp(d.data.value))
+      // else
+      //     return(colorScaletemp(0 - d.data.value))
   })
-  .attr("stroke", "black")
-  .style("stroke-width", "0.1px")
+  // .attr("stroke", "black")
+  // .style("stroke-width", "0px")
+  // .style("stroke-width", "0.1px")
   // .style("opacity", 0.7)
     path.attr("transform", "translate("+locationx+","+locationy+")")
 }

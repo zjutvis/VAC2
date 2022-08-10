@@ -1,15 +1,42 @@
-function MultiLevel_Draw12_Focus_Center(svgid, left, widthtemp, selectedgroups, event_count, newLineList, nodes) {
+
+
+var BottomFocusContainerVis = d3.select("#mcv-FocusContainer")
+    .append("div").attr("id", "BottomFocusContainer")
+    .attr("width", 1500)
+    .attr("height", 620)
+    .style("position", "absolute")
+    .style("top", "0px")
+    .style("left", "160px")
+BottomFocusContainerVis.append("svg")
+    .attr("width", centerwidth)
+    .attr("height", 620)
+    .style("left", side12_width + transition_width)
+    .attr("id", "svg_BottomFocusContainer_focus").style("position", "absolute")
+// .attr("backgroud", "blue").style("border", "1px solid red")
+
+// function DrawFocusacausality(svgid, left = 0 , widthtemp = 1800, selectedgroups, event_count, newLineList, nodes) {
+//     //MultilevelVis :  id : svg_multilevel_focus
+//     d3.selectAll("#" + svgid).remove()
+//     let multilevelcentersvg = BottomFocusContainerVis.append("svg")
+//         .attr("width", 1500)
+//         .attr("height", 620)
+//         .style("left", 0)
+//         .attr("id", svgid)
+//         .style("position", "absolute")
+//         .attr("backgroud", "blue")
+//         .style("border", "1px solid red")
+function DrawFocusacausality(svgid, left = 0, widthtemp, selectedgroups, event_count, newLineList, nodes) {
     //MultilevelVis :  id : svg_multilevel_focus
     d3.selectAll("#" + svgid).remove()
-    let multilevelcentersvg = multilevelvis.append("svg")
-        .attr("width", widthtemp)
+    let multilevelcentersvg = BottomFocusContainerVis.append("svg")
+
+        .attr("width", 1500)
         .attr("height", 620)
-        .style("left", left)
+        .style("left", 0)
         .attr("id", svgid)
         .style("position", "absolute")
         .attr("backgroud", "blue")
         .style("border", "1px solid red")
-
     multilevelcentersvg
         .append("rect")
         .attr("width", "100%")
@@ -30,7 +57,7 @@ function MultiLevel_Draw12_Focus_Center(svgid, left, widthtemp, selectedgroups, 
 
 
     let colorScale = d3.scaleSequential(d3.interpolatePRGn)
-        .domain([-1.1, 1.1])
+        .domain([-1, 1])
     let fix_radius = Math.min(x_lag, y_lag) * 0.5 * 0.95    //椭圆轴的rx
 
     let radiusScale = d3.scaleLinear()
@@ -51,35 +78,11 @@ function MultiLevel_Draw12_Focus_Center(svgid, left, widthtemp, selectedgroups, 
             return i * y_lag + (y_lag * 0.5 - fix_radius)
         })
         .attr("height", fix_radius * 2)
-        .attr("width", widthtemp)
+        .attr("width", 1500)
         .style("fill", function (d, i) {
             return d.color
         })
-        .style("opacity", 0.12)
-        .on("mouseover", function (d, i) {
-            let select_event = d.name;
-            d3.selectAll(".eventRect")
-                .style("fill", function (d) {
-                    if (select_event != d.eventname)
-                        return "#F2F2F2"
-                    else
-                        return d.eventcolor
-                })
-                .attr("opacity", function (d) {
-                    if (select_event != d.eventname)
-                        return 0.8
-                    else
-                        return 1.0
-                })
-        })
-        .on("mouseout", function (d) {
-            let select_event = d.name;
-            d3.selectAll(".eventRect")
-                .attr("opacity", 0.4)
-                .style("fill", function (d) {
-                    return d.eventcolor
-                })
-        })
+        .style("opacity", 0.1)
         .on("click", function (d) {
             if (writetosource === 1) {
                 $("#input-select-source").val(d.name);
@@ -116,6 +119,7 @@ function MultiLevel_Draw12_Focus_Center(svgid, left, widthtemp, selectedgroups, 
             }
 
         })
+
 
     let old_x
     let old_i;
@@ -169,8 +173,13 @@ function MultiLevel_Draw12_Focus_Center(svgid, left, widthtemp, selectedgroups, 
         .attr("d", function (d) {
             return getDFromLine(d, x_lag, y_lag, fix_radius)
         })
-        .attr("stroke", "rgb(125,126,129)") //rgb(133,134,137)
-        .attr("stroke-width", fix_radius * 0.2)
+        .attr("stroke", function (d) {
+            if (d.is_single === 0)
+                return "rgb(133,134,137)"
+                else
+                return "rgb(180,75,25)"
+        }) //rgb(133,134,137)
+        .attr("stroke-width", fix_radius * 0.3)
         .attr("fill", "none");
 
     //添加target节点
@@ -270,7 +279,7 @@ function MultiLevel_Draw12_Focus_Center(svgid, left, widthtemp, selectedgroups, 
         .attr('class', 'd3-tip')
         //.offset([-2, 0])
         .html(function (d) {
-            let tipstring = "Delete a entity:<br>name: " + d.name +"<br>"+
+            let tipstring = "Delete a entity:<br>name: " + d.name + "<br>" +
                 "order: " + d.order;
             return tipstring + "<button id='confirmbnt' class='confirmbnt'>Confirm</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button  id='cancelbnt' class='confirmbnt'>Cancel</button>"
         });
@@ -280,7 +289,7 @@ function MultiLevel_Draw12_Focus_Center(svgid, left, widthtemp, selectedgroups, 
     //添加source的or节点
     groups.selectAll(".or_center")
         .data(function (d) {
-            return d.source_or_order_strength
+            return d.source_and_order_strength
         })
         .enter()
         .append("circle")
@@ -294,7 +303,7 @@ function MultiLevel_Draw12_Focus_Center(svgid, left, widthtemp, selectedgroups, 
         })
         .attr("fill", function (d) {
             return "rgb(126,195,128)"//测试
-            // return colorScale(d.strength)
+            //return colorScale(d.strength)
         })
         .on("mouseover", function (d, i) {
             d3.select(this.parentNode)
@@ -391,20 +400,7 @@ function MultiLevel_Draw12_Focus_Center(svgid, left, widthtemp, selectedgroups, 
 
         })
 
-    //添加source的and节点
-    groups.selectAll(".and_nodes")
-        .data(function (d) {
-            return d.source_and_order
-        })
-        .enter()
-        .append("circle")
-        .attr("class", "and")
-        .attr("cx", 0.5 * x_lag)
-        .attr("cy", function (d) {
-            return (d + 0.5) * y_lag
-        })
-        .attr("r", fix_radius * 0.8)
-        .attr("fill", "#C0C0C0");
+
 
 
     // ///////.....这里在Target的地方画piechart
@@ -432,184 +428,34 @@ function MultiLevel_Draw12_Focus_Center(svgid, left, widthtemp, selectedgroups, 
     //
     // }
 
-    ///////.....这里在OR的地方画piechart
-    let gtemp_All = groups._groups[0]
-    let radius = fix_radius * 0.9
-    for (let k = 0; k < gtemp_All.length; k++) {
-        let datagroup = gtemp_All[k].__data__
-        for (let kk = 0; kk < datagroup.source_and_order.length; kk++) {
-            let datatemp = Array.from(datagroup.source_or_order_strength.map(a => a.strength))
-            let apiechartdata = []
-            // let datatemp = datagroup.source_or_order_strength;  //强度的数据
-            datatemp.forEach(function (d) {
-                apiechartdata.push(d)
-            })
-            let drawing = d3.select("#" + gtemp_All[k].id + ".line_group_center")
-            let dtemp = datagroup.source_and_order[kk],
-                cxtemp = 0.5 * x_lag,
-                cytemp = (dtemp + 0.5) * y_lag
+    // ///////.....这里在OR的地方画piechart
+    // let gtemp_All = groups._groups[0]
+    // let radius = fix_radius * 0.9
+    // for (let k = 0; k < gtemp_All.length; k++) {
+    //     let datagroup = gtemp_All[k].__data__
+    //     for (let kk = 0; kk < datagroup.source_and_order.length; kk++) {
+    //         let datatemp = Array.from(datagroup.source_or_order_strength.map(a => a.strength))
+    //         let apiechartdata = []
+    //         // let datatemp = datagroup.source_or_order_strength;  //强度的数据
+    //         datatemp.forEach(function (d) {
+    //             apiechartdata.push(d)
+    //         })
+    //         let drawing = d3.select("#" + gtemp_All[k].id + ".line_group_center")
+    //         let dtemp = datagroup.source_and_order[kk],
+    //             cxtemp = 0.5 * x_lag,
+    //             cytemp = (dtemp + 0.5) * y_lag
+    //     }
 
-            DrawPieChart(drawing, radius, cxtemp, cytemp,
-                apiechartdata, colorScale)
-            // DrawPieChart(gtemp, radiustemp, locationx, locationy, datatemp,colorScaletemp)
-        }
+    // }
 
-    }
-
-    d3.selectAll(".pie-path")
-        .each(function (d, i) {
-        })
-        .on('mouseover', function (d, i) {
-            var ind = Math.floor((d3.select(this).node().getBoundingClientRect().y - 20) / 40);
-            var name = getEventNameByOrder(ind, drawgraphdataset.nodes);
-            var text_g = d3.select(this.parentNode.parentNode)
-                .append('g')
-                .attr('id', 'text-g');
-            var tx = (parseInt(d3.select(this.parentNode).attr('id').split('_')[3]) + 0.5) * x_lag;;
-            var ty = parseInt(d3.select(this).attr('transform').split(',')[1].split(')')[0]);
-            text_g.append('rect')
-                .attr('x', tx + 15)
-                .attr('y', ty - 10)
-                .attr('width', name.length * 7)
-                .attr('height', '20')
-                .style('fill', 'white')
-                .style('opacity', '0.8')
-                .attr('rx', '5');
-            text_g.append('text')
-                .text(name)
-                .attr('x', tx + 18)
-                .attr('y', ty + 5)
-                .style('fill', '#202020')
-                .style("font-family", ' Arial, sans-serif')
-                .style("font-weight", 'normal');
-            d3.select(this.parentNode)
-                .selectAll('circle')
-                .each(function (d, i) {
-                    var text_g = d3.select(this.parentNode.parentNode)
-                        .append('g')
-                        .attr('id', 'text-g');
-                    var tx = d3.select(this.parentNode).attr('id').split('_').pop() * x_lag;
-                    var ty = parseInt(d3.select(this).attr('cy'));
-                    if ('target_order' in d) {
-                        var name = getEventNameByOrder(d.target_order, drawgraphdataset.nodes);
-                    } else {
-                        var name = getEventNameByOrder(d.order, drawgraphdataset.nodes) + ": " +
-                            (d.strength * 100).toFixed(2) + "%";
-                    }
-                    text_g.append('rect')
-                        .attr('x', tx + 30)
-                        .attr('y', ty)
-                        .attr('width', name.length * 7)
-                        .attr('height', '20')
-                        .style('fill', 'white')
-                        .style('opacity', '0.8')
-                        .attr('rx', '5');
-                    text_g.append('text')
-                        .text(name)
-                        .attr('x', tx + 32)
-                        .attr('y', ty + 15)
-                        .style('fill', '#202020')
-                        .style("font-family", ' Arial, sans-serif')
-                        .style("font-weight", 'normal');
-                });
-        })
-        .on("mouseout", function (d, i) {
-            d3.select(this.parentNode.parentNode)
-                .selectAll('#text-g')
-                .remove();
-        });
 
 
     d3.selectAll("#" + svgid).call(tip)
     d3.selectAll("#" + svgid).call(tip2)
 
 
-    // //计算path
-    // function getDFromLine(currLine, x_lag, y_lag, fix_radius) {
-    //     let d = ""
-    //     let rx = fix_radius
-    //     let node_group = currLine.node_group;
-    //     //从head开始 head两类：and/target or
-    //     let isleft = 0;
-    //     if (node_group.get(currLine.head_order) == "and" ) {
-    //         d += "m" + x_lag * 0.5 + "," + (currLine.head_order + 0.5) * y_lag  //m起始位置
-    //             + " v" + 0.5 * y_lag
-    //     }
-    //     else if(node_group.get(currLine.head_order) == "target") {
-    //         d += "m" + x_lag * 0.5 + "," + (currLine.head_order + 0.5) * y_lag  //m起始位置
-    //             + " v" + rx    //到箭头顶点
-    //             + " l-1,2 l1,-1 l1,1 l-1,-2" 
-    //             +" v"+(y_lag*0.5-rx) 
-    //     }
-    //     else {
-    //         isleft++;
-    //         d += "m" + x_lag * 0.5 + "," + (currLine.head_order * y_lag + 0.5 * y_lag - rx)//m起始位置
-    //             + " a" + rx + " " + rx + " " + 0 + ",0," + isleft % 2 + " 0," + 2 * rx
-    //             + " v" + (0.5 * y_lag - rx)                                   //弧形                                  //弧形
-
-    //     }
-
-    //     //中间的部分
-    //     for (let i = currLine.head_order + 1; i < currLine.tail_order; i++) {
-    //         curr_node_group = currLine.node_group.get(i);
-    //         if (curr_node_group === "target" ) {
-    //             d+= " v" + (y_lag*0.5-rx)
-    //              +" l-1,-2 l1,1 l1,-1 l-1,2"
-    //              + " v" + rx*2
-    //              +" l-1,2 l1,-1 l1,1 l-1,-2" 
-    //             d += " v" + (y_lag*0.5-rx) 
-    //         }
-    //         else if (curr_node_group === "and" || curr_node_group === "no" ) {
-    //             d += " v" + y_lag
-    //         }
-    //         else {
-    //             isleft++;
-    //             // d += " a" + rx + "," + 0.5 * y_lag + " " + 0 + ",0," + isleft % 2 + " 0," + y_lag
-    //             d += " v" + (0.5 * y_lag - rx)
-    //                 + " a" + rx + " " + rx + " " + 0 + ",0," + isleft % 2 + " 0," + 2 * rx
-    //                 + " v" + (0.5 * y_lag - rx)
-    //         }
-    //     }
-
-    //     if (node_group.get(currLine.tail_order) == "and") {
-    //         d += " v" + 0.5 * y_lag
-    //     }
-    //     else if(node_group.get(currLine.tail_order) == "target") {
-    //         d += " v" + (0.5 * y_lag-rx)
-    //          + " l-1,-2 l1,1 l1,-1 l-1,2"
-    //     }
-    //     else {
-    //         isleft++;
-    //         d += " v" + (0.5 * y_lag - rx) +
-    //             " a" + rx + "," + rx + " " + 0 + ",0," + isleft % 2 + " 0," + 2 * rx                                     //弧形
-    //     }
-
-    //     return d;
-    // }
-
     //计算path
     function getDFromLine(currLine, x_lag, y_lag, fix_radius) {
-                //把and-or 改成-> and-and
-        let currLinetemp = currLine.node_group
-        let count_or = 0
-        let count_and = 0
-        for (let [key, value] of currLinetemp.entries()) {
-            if(value == "or") count_or++
-            if(value == "and") count_and++
-        }
-        if(count_or == 1 && count_and == 1){
-            for (let [key, value] of currLinetemp.entries()) {
-            if(value == "or") currLinetemp.set(key,"and")
-            }
-        }
-        // if(count_or == 1 && count_and == 0){
-        //     for (let [key, value] of currLinetemp.entries()) {
-        //     if(value == "or") currLinetemp.set(key,"and")
-        //     }
-        // }
-        currLine.node_group = currLinetemp
-
-
         let d = ""
         let rx = fix_radius
         let node_group = currLine.node_group;
@@ -626,16 +472,15 @@ function MultiLevel_Draw12_Focus_Center(svgid, left, widthtemp, selectedgroups, 
                 + " a" + rx + " " + 0.5 * y_lag + " " + 0 + ",0," + isleft % 2 + " 0," + y_lag                                     //弧形
 
         }
-        // if (currLine.head_order == currLine.target_order) {
-        //     d += " v" + -0.2 * y_lag + " l" + 0.1 * rx + "," + 0.2 * rx + " l" + -0.1 * rx + "," + -0.06 * rx + " l" + -0.1 * rx + "," + 0.06 * rx + " l" + 0.1 * rx + "," + -0.2 * rx + " v" + 0.2 * y_lag;
-        // }
+        if (currLine.head_order == currLine.target_order) {
+            d += " v" + -0.2 * y_lag + " l" + 0.1 * rx + "," + 0.2 * rx + " l" + -0.1 * rx + "," + -0.06 * rx + " l" + -0.1 * rx + "," + 0.06 * rx + " l" + 0.1 * rx + "," + -0.2 * rx + " v" + 0.2 * y_lag;
+        }
         //中间的部分
         for (let i = currLine.head_order + 1; i < currLine.tail_order; i++) {
             curr_node_group = currLine.node_group.get(i);
-            //箭头
-            // if (curr_node_group === "target") {
-            //     d += " v" + y_lag * 0.5 + " v" + -0.3 * y_lag + " l" + -0.1 * rx + "," + -0.2 * rx + " l" + 0.1 * rx + ',' + 0.06 * rx + " l" + 0.1 * rx + ',' + -0.06 * rx + " l" + -0.1 * rx + "," + 0.2 * rx + " v" + 0.3 * y_lag + " v" + -y_lag * 0.5;
-            // }
+            if (curr_node_group === "target") {
+                d += " v" + y_lag * 0.5 + " v" + -0.3 * y_lag + " l" + -0.1 * rx + "," + -0.2 * rx + " l" + 0.1 * rx + ',' + 0.06 * rx + " l" + 0.1 * rx + ',' + -0.06 * rx + " l" + -0.1 * rx + "," + 0.2 * rx + " v" + 0.3 * y_lag + " v" + -y_lag * 0.5;
+            }
             if (curr_node_group === "and" || curr_node_group === "no" || curr_node_group === "target") {
                 d += " v" + y_lag
             }
@@ -643,10 +488,9 @@ function MultiLevel_Draw12_Focus_Center(svgid, left, widthtemp, selectedgroups, 
                 isleft++;
                 d += " a" + rx + "," + 0.5 * y_lag + " " + 0 + ",0," + isleft % 2 + " 0," + y_lag
             }
-            //箭头
-            // if (curr_node_group === 'target') {
-            //     d += " v" + -0.2 * y_lag + " l" + 0.1 * rx + "," + 0.2 * rx + " l" + -0.1 * rx + ',' + -0.06 * rx + " l" + -0.1 * rx + ',' + 0.06 * rx + " l" + 0.1 * rx + "," + -0.2 * rx + " v" + 0.2 * y_lag;
-            // }
+            if (curr_node_group === 'target') {
+                d += " v" + -0.2 * y_lag + " l" + 0.1 * rx + "," + 0.2 * rx + " l" + -0.1 * rx + ',' + -0.06 * rx + " l" + -0.1 * rx + ',' + 0.06 * rx + " l" + 0.1 * rx + "," + -0.2 * rx + " v" + 0.2 * y_lag;
+            }
         }
         if (node_group.get(currLine.tail_order) == "and" || node_group.get(currLine.tail_order) == "target") {
             d += " v" + 0.5 * y_lag
@@ -655,9 +499,9 @@ function MultiLevel_Draw12_Focus_Center(svgid, left, widthtemp, selectedgroups, 
             isleft++;
             d += " a" + rx + "," + 0.5 * y_lag + " " + 0 + ",0," + isleft % 2 + " 0," + y_lag                                     //弧形
         }
-        // if (currLine.tail_order == currLine.target_order) {
-        //     d += " v" + -0.3 * y_lag + " l" + -0.1 * rx + "," + -0.2 * rx + " l" + 0.1 * rx + "," + 0.06 * rx + " l" + 0.1 * rx + "," + -0.06 * rx + " l" + -0.1 * rx + "," + 0.2 * rx + " v" + 0.2 * y_lag;
-        // }
+        if (currLine.tail_order == currLine.target_order) {
+            d += " v" + -0.3 * y_lag + " l" + -0.1 * rx + "," + -0.2 * rx + " l" + 0.1 * rx + "," + 0.06 * rx + " l" + 0.1 * rx + "," + -0.06 * rx + " l" + -0.1 * rx + "," + 0.2 * rx + " v" + 0.2 * y_lag;
+        }
 
         return d;
     }

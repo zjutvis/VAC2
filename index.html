@@ -445,20 +445,11 @@
                         </div>
                     </div>
                 </div>
-            </td>
-        </tr>
-        <!-- contains sequence -->
-        <!-- <tr class="mcv-content-second-row ">
-            <td class="mcv-sequence-fixed" colspan="2">
-                <div id="mcv-sequenceContainer-panel" class="panel panel-default mcv-clearfix">
-                    <div id="mcv-sequenceContainer" class="col-md-12 panel-body">
-                        <div id="SequencesVis">
-
-                        </div>
-                    </div>
+                <div id="mcv-BottomFocusContainer-panel" fill="red" class="panel panel-default mcv-clearfix">
+                    <div id="mcv-FocusContainer" class="col-md-12 panel-body"></div>
                 </div>
             </td>
-        </tr> -->
+        </tr>
     </table>
 
 </body>
@@ -490,7 +481,7 @@
 <script type="text/javascript" src="./static/myjs_zsj/MultiLevelCenter.js"></script>
 <script type="text/javascript" src="./static/myjs_zsj/MultiLevelSide12.js"></script>
 <script type="text/javascript" src="./static/myjs_zsj/DrawPropagation.js"></script>
-
+<script type="text/javascript" src="./static/myjs_zsj/One-to-one-no-aggregation.js"></script>
 
 <!--Draw Propagation-->
 <link href="./static/myjs_zsj/PropagationPath/css/neumorph.min.css" rel="stylesheet">
@@ -528,8 +519,10 @@
     var widthofcontextgroup
     var vertical_order = "id"
     var horizontal_order = "default"
+    var deletflagstatus = "none"
     var deletable = 0   //默认不可以删除
     var deletedIndexOfLinks = -1
+    var deletedIndexOfEntity = -1 //删除一行，某一个人事件
     var order_method = "id"
 
     var maxCountInAPeriod = 0

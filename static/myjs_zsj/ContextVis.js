@@ -1,14 +1,17 @@
 function Draw12_Contex(operation, div, dataset, event2namefortooltip, strength, method, select_strengths, select_max_causes, vertical_order_para, horizontal_order_para) {
     //获得因果关系的数据：包括单因果和多因果
     let graphdataset
-    if (deletedIndexOfLinks === -1) {
+    if (deletedIndexOfLinks === -1 & deletedIndexOfEntity === -1) {
         graphdataset = getCausalLink(operation, dataset, event2namefortooltip, strength, method, select_strengths, select_max_causes, vertical_order, horizontal_order)
     }
     else {
         graphdataset = getCausalLinkWithDelete(operation, dataset, event2namefortooltip, strength, method, select_strengths, select_max_causes, vertical_order, horizontal_order)
         deletedIndexOfLinks = -1;
+        deletedIndexOfEntity = -1
         deletable = 0
+        deletflagstatus = "none"
     }
+
     global_linelist = graphdataset
     //用lineList来绘制
     //事件序列数据集
@@ -61,7 +64,7 @@ function Draw12_Contex(operation, div, dataset, event2namefortooltip, strength, 
         .style("fill", function (d, i) {
             return d.color
         })
-        .style("opacity", 0.1)
+        .style("opacity", 0.12)
         .on("mouseover", function (d, i) {
             let select_event = d.name;
             d3.selectAll(".eventRect")
@@ -433,6 +436,27 @@ function Draw12_Contex(operation, div, dataset, event2namefortooltip, strength, 
 
     //计算path
     function getDFromLine(currLine, x_lag, y_lag, fix_radius) {
+        //把and-or 改成-> and-and
+        let currLinetemp = currLine.node_group
+        let count_or = 0
+        let count_and = 0
+        for (let [key, value] of currLinetemp.entries()) {
+            if(value == "or") count_or++
+            if(value == "and") count_and++
+        }
+        if(count_or == 1 && count_and == 1){
+            for (let [key, value] of currLinetemp.entries()) {
+            if(value == "or") currLinetemp.set(key,"and")
+            }
+        }
+        // if(count_or == 1 && count_and == 0){
+        //     for (let [key, value] of currLinetemp.entries()) {
+        //     if(value == "or") currLinetemp.set(key,"and")
+        //     }
+        // }
+        currLine.node_group = currLinetemp
+
+
         let d = ""
         let rx = fix_radius * 1.2
         let node_group = currLine.node_group;
