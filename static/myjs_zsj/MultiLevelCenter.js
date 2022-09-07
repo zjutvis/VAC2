@@ -293,8 +293,8 @@ function MultiLevel_Draw12_Focus_Center(svgid, left, widthtemp, selectedgroups, 
             return radiusScale(Math.abs(d.strength))
         })
         .attr("fill", function (d) {
-            return "rgb(126,195,128)"//测试
-            // return colorScale(d.strength)
+//            return "rgb(126,195,128)"//测试
+             return colorScale(d.strength)
         })
         .on("mouseover", function (d, i) {
             d3.select(this.parentNode)

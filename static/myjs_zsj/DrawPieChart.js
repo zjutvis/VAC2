@@ -17,11 +17,11 @@ var path = gtemp
     .outerRadius(radiustemp)
   )
   .attr('fill', function(d){
-      return "rgb(126,195,128)"//测试
-      // if (d.data.flag)
-      //     return(colorScaletemp(d.data.value))
-      // else
-      //     return(colorScaletemp(0 - d.data.value))
+//      return "rgb(126,195,128)"//测试
+       if (d.data.flag)
+           return(colorScaletemp(d.data.value))
+       else
+           return(colorScaletemp(0 - d.data.value))
   })
   // .attr("stroke", "black")
   // .style("stroke-width", "0px")
