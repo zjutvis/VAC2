@@ -130,14 +130,19 @@ function MultiLevel_Draw12_Focus_Center(svgid, left, widthtemp, selectedgroups, 
         })
         .attr("transform", (d, i) => "translate(" + (padding.left + i * x_lag) + ",0)")
     let wasMoved = false;
+    let dragedGroup;
     groups
         .call(d3.drag()
             .on("start", function (d, i) {
-                d3.select(this).raise().classed("active", true);
+                dragedGroup = d3.select(this).raise().classed("active", true);
                 old_i = i;
             })
             .on("drag", function (d, i) {
                 wasMoved = true;
+                if (horizontal_order == 'manual'){
+                    var new_x = d3.event.x;
+                    dragedGroup.attr("transform", "translate(" + d3.event.x + ", 0)");
+                }
             })
             .on("end", function (d, j) {
                 if (wasMoved) {
