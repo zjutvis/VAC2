@@ -161,7 +161,7 @@ function DrawFocusacausality(svgid, left = 0, widthtemp, selectedgroups, event_c
                     } else {
                         horizontalDragEnd = temp_g_list[0];
                     }
-                    focusandcontextbrush("change", "#Brushview", global_obj, select_strengths, causes_max, vertical_order, horizontal_order)
+                    focusandcontextbrush("change", "#Brushview", global_obj, select_strengths, causes_max, vertical_order, horizontal_order, "horizontal")
                 }
 
             })

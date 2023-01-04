@@ -1,11 +1,11 @@
-function Draw12_Contex(operation, div, dataset, event2namefortooltip, strength, method, select_strengths, select_max_causes, vertical_order_para, horizontal_order_para) {
+function Draw12_Contex(operation, div, dataset, event2namefortooltip, strength, method, select_strengths, select_max_causes, vertical_order_para, horizontal_order_para, change_para) {
     //获得因果关系的数据：包括单因果和多因果
     let graphdataset
     if (deletedIndexOfLinks === -1 & deletedIndexOfEntity === -1) {
-        graphdataset = getCausalLink(operation, dataset, event2namefortooltip, strength, method, select_strengths, select_max_causes, vertical_order, horizontal_order)
+        graphdataset = getCausalLink(operation, dataset, event2namefortooltip, strength, method, select_strengths, select_max_causes, vertical_order, horizontal_order, change_para)
     }
     else {
-        graphdataset = getCausalLinkWithDelete(operation, dataset, event2namefortooltip, strength, method, select_strengths, select_max_causes, vertical_order, horizontal_order)
+        graphdataset = getCausalLinkWithDelete(operation, dataset, event2namefortooltip, strength, method, select_strengths, select_max_causes, vertical_order, horizontal_order, change_para)
         deletedIndexOfLinks = -1;
         deletedIndexOfEntity = -1
         deletable = 0
@@ -138,7 +138,7 @@ function Draw12_Contex(operation, div, dataset, event2namefortooltip, strength, 
             d3.select("#svg_multilevel_transition2").selectAll("*").remove()
             d3.select("#event_name_svg").selectAll("*").remove()
             horizontal_order = 'click' + i;
-            focusandcontextbrush("change", "#Brushview", global_obj, select_strengths, causes_max, vertical_order, horizontal_order)
+            focusandcontextbrush("change", "#Brushview", global_obj, select_strengths, causes_max, vertical_order, horizontal_order, 'horizontal')
         })
 
 
@@ -207,47 +207,50 @@ function Draw12_Contex(operation, div, dataset, event2namefortooltip, strength, 
         old_y = d3.select(this).node().getBoundingClientRect().y
     }
     function dragged(d) {
-        console.log(order_method)
-        //这里加上调整其它事件顺序的部分
-        d3.select(this)
-            .attr("x", d.x = d3.event.x)
-            .attr("y", d.y = d3.event.y);
+        if (vertical_order == 'manual'){
+            console.log(order_method);
+            //这里加上调整其它事件顺序的部分
+            d3.select(this)
+                .attr("x", d.x = d3.event.x)
+                .attr("y", d.y = d3.event.y);
+        }
 
     }
     function dragended(d) {
-        console.log(order_method)
-        //根据坐标判断向上还是向下移动
-        // curr_y = d3.select()
-        console.log(text_y)
-        d3.select(this).raise().classed("eventNames", false);
-        //下面的节点cy向下
-        let curry = d3.select(this).node().getBoundingClientRect().y
+        if (vertical_order == 'manual'){
+            console.log(order_method)
+            //根据坐标判断向上还是向下移动
+            // curr_y = d3.select()
+            console.log(text_y)
+            d3.select(this).raise().classed("eventNames", false);
+            //下面的节点cy向下
+            let curry = d3.select(this).node().getBoundingClientRect().y
 
-        d3.select(this).raise().classed("active", false);
-        d3.select(this).raise().classed("eventNames", true);
-        console.log(d3.selectAll(".eventNames"))
+            d3.select(this).raise().classed("active", false);
+            d3.select(this).raise().classed("eventNames", true);
+            console.log(d3.selectAll(".eventNames"))
 
+            nodes = nodes.sort(function (a, b) {
+                return d3.select("#eventname_" + a.name).node().getBoundingClientRect().y - d3.select("#eventname_" + b.name).node().getBoundingClientRect().y
+            })
 
-        nodes = nodes.sort(function (a, b) {
-            return d3.select("#eventname_" + a.name).node().getBoundingClientRect().y - d3.select("#eventname_" + b.name).node().getBoundingClientRect().y
-        })
+            for (let i = 0; i < nodes.length; i++) {
+                old_new_order.set(nodes[i].order, i)
+                nodes[i].order = i;
+                event_order.set(nodes[i].id, nodes[i].order);
+            }
+            console.log(old_new_order)
+            console.log(nodes)
 
-        for (let i = 0; i < nodes.length; i++) {
-            old_new_order.set(nodes[i].order, i)
-            nodes[i].order = i;
-            event_order.set(nodes[i].id, nodes[i].order);
+            d3.select("#Brushview").selectAll("*").remove()
+            d3.select("#svg_multilevel_focus").selectAll("*").remove()
+            d3.select("#svg_multilevel_side1").selectAll("*").remove()
+            d3.select("#svg_multilevel_side2").selectAll("*").remove()
+            d3.select("#svg_multilevel_transition1").selectAll("*").remove()
+            d3.select("#svg_multilevel_transition2").selectAll("*").remove()
+            d3.select("#event_name_svg").selectAll("*").remove()
+            focusandcontextbrush("change", "#Brushview", global_obj, select_strengths, causes_max, vertical_order, horizontal_order, "vertical")
         }
-        console.log(old_new_order)
-        console.log(nodes)
-
-        d3.select("#Brushview").selectAll("*").remove()
-        d3.select("#svg_multilevel_focus").selectAll("*").remove()
-        d3.select("#svg_multilevel_side1").selectAll("*").remove()
-        d3.select("#svg_multilevel_side2").selectAll("*").remove()
-        d3.select("#svg_multilevel_transition1").selectAll("*").remove()
-        d3.select("#svg_multilevel_transition2").selectAll("*").remove()
-        d3.select("#event_name_svg").selectAll("*").remove()
-        focusandcontextbrush("change", "#Brushview", global_obj, select_strengths, causes_max, vertical_order, horizontal_order)
     }
 
     widthofcontextgroup = x_lag

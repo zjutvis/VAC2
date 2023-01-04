@@ -573,7 +573,7 @@
         console.log($(this).val())
         horizontal_order = $(this).val()
         if ($(this).val() != "manual") {
-            focusandcontextbrush("change", "#Brushview", global_obj, select_strengths, causes_max, vertical_order, horizontal_order)
+            focusandcontextbrush("change", "#Brushview", global_obj, select_strengths, causes_max, vertical_order, horizontal_order, 'horizontal')
         }
     })
 
@@ -582,7 +582,7 @@
         console.log($(this).val())
         vertical_order = $(this).val()
         if ($(this).val() != "manual") {
-            focusandcontextbrush("change", "#Brushview", global_obj, select_strengths, causes_max, vertical_order, horizontal_order)
+            focusandcontextbrush("change", "#Brushview", global_obj, select_strengths, causes_max, vertical_order, horizontal_order, 'vertical')
         }
     })
 

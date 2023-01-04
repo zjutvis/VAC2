@@ -130,24 +130,24 @@ function MultiLevel_Draw12_Focus_Center(svgid, left, widthtemp, selectedgroups, 
         })
         .attr("transform", (d, i) => "translate(" + (padding.left + i * x_lag) + ",0)")
     let wasMoved = false;
-    let dragedGroup;
+    let dragedgroup;
     groups
         .call(d3.drag()
             .on("start", function (d, i) {
-                dragedGroup = d3.select(this).raise().classed("active", true);
+                dragedgroup = d3.select(this).raise().classed("active", true);
                 old_i = i;
             })
             .on("drag", function (d, i) {
                 wasMoved = true;
                 if (horizontal_order == 'manual'){
                     var new_x = d3.event.x;
-                    dragedGroup.attr("transform", "translate(" + d3.event.x + ", 0)");
+                    dragedgroup.attr("transform", "translate(" + d3.event.x + ", 0)");
                 }
             })
             .on("end", function (d, j) {
                 if (wasMoved) {
                     // 新的位置
-                    var new_x = d3.event.x;
+                    var new_x = d3.event.x; //鼠标的位置
                     var temp_g_list = [];
                     for (var i = 0; i < d3.select(this.parentNode).selectAll(".line_group_center")._groups[0].length; i++) {
                         if (new_x <= parseFloat(d3.select(d3.select(this.parentNode).selectAll(".line_group_center")._groups[0][i]).attr('transform').split("(")[1].split(',')[0])) {
@@ -160,9 +160,9 @@ function MultiLevel_Draw12_Focus_Center(svgid, left, widthtemp, selectedgroups, 
                     if (temp_g_list.length === 0) {
                         horizontalDragEnd = d3.select(this.parentNode).selectAll(".line_group_center")._groups[0].length - 1;
                     } else {
-                        horizontalDragEnd = temp_g_list[0];
+                        horizontalDragEnd = temp_g_list[0]<horizontalDragStart ? temp_g_list[0]-1 : temp_g_list[0];
                     }
-                    focusandcontextbrush("change", "#Brushview", global_obj, select_strengths, causes_max, vertical_order, horizontal_order)
+                    focusandcontextbrush("change", "#Brushview", global_obj, select_strengths, causes_max, vertical_order, horizontal_order, "horizontal")
                 }
 
             })

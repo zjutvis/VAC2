@@ -1,6 +1,6 @@
-function focusandcontextbrush(operation, div, obj, select_strengths_para = [-0.3, 0.3], select_max_causes = 4, vertical_order_para = "id", horizontal_order_para = "default") {
+function focusandcontextbrush(operation, div, obj, select_strengths_para = [-0.3, 0.3], select_max_causes = 4, vertical_order_para = "id", horizontal_order_para = "default",change_para) {
     console.log("order_method:" + order_method + " select_strengths:" + select_strengths + " causes_max:" + causes_max)
-    var filterdatatemp = Draw12_Contex(operation, div, obj, obj["event2name"], 0.3, 3, select_strengths, causes_max, vertical_order, horizontal_order)  //绘制底下的
+    var filterdatatemp = Draw12_Contex(operation, div, obj, obj["event2name"], 0.3, 3, select_strengths, causes_max, vertical_order, horizontal_order, change_para)  //绘制底下的
 
     let margin = { top: 25, right: 10, bottom: 0, left: 10 },
         padding = { top: 200, right: 10, bottom: 0, left: 10 },

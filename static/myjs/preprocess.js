@@ -1,5 +1,5 @@
 //数据处理：初始化所有要用到的数据，将nodes，links，lineList存为全局变量    水平排序垂直排序分开
-function getCausalLink(operation, dataset, event2namefortooltip, strength, sort_method, select_strengths, select_max_causes, vertical_order, horizontal_order) {
+function getCausalLink(operation, dataset, event2namefortooltip, strength, sort_method, select_strengths, select_max_causes, vertical_order, horizontal_order, change_para) {
     if (operation === "initial") {
         //流程：存储node，存储link，link排序，根据node和link聚类，根据聚类结果为node分配color，将link合并为lineList
         //ii:记录事件个数
@@ -133,204 +133,198 @@ function getCausalLink(operation, dataset, event2namefortooltip, strength, sort_
 
     else if (operation === "change") {      //operation:"change"    改变order
         //vertical_order的操作
-        if (vertical_order === "id") {
-            // links.filter(link => (link.strength <= select_strengths[0] || link.strength >= select_strengths[1]))
-            let singlecausality = links.filter(link => (link.source.length ==1))
-            //尽量紧凑
-            let neworder = [nodes[0]]
-            for(let t = 0 ; t < nodes.length; t ++ ){
-                //target
-                if(!neworder.some(node => ( node.id == nodes[t].id ))){
-                    neworder.push(  nodes.find(node => (node.id == nodes[t].id )) )
+        if (change_para === 'vertical'){
+            if (vertical_order === "id") {
+                // links.filter(link => (link.strength <= select_strengths[0] || link.strength >= select_strengths[1]))
+                let singlecausality = links.filter(link => (link.source.length ==1))
+                //尽量紧凑
+                let neworder = [nodes[0]]
+                for(let t = 0 ; t < nodes.length; t ++ ){
+                    //target
+                    if(!neworder.some(node => ( node.id == nodes[t].id ))){
+                        neworder.push(  nodes.find(node => (node.id == nodes[t].id )) )
+                    }
+
+
+                    //source
+                    var sourcetemp = singlecausality.filter(link =>(link.target == nodes[t].id))
+                    for(let p = 0 ; p < sourcetemp.length; p ++ ){
+                        //if( neworder.some(node => node.id == singlecausality[p].target ) ) { //target一致
+                            if(!neworder.some(node => (node.id == sourcetemp[p].source[0]))){//且不存在该元素
+                                neworder.push(  nodes.find(node => (node.id == sourcetemp[p].source[0])) ) //因为已经filter length ==1,所以[0]
+                            }
+                       // }
+                    }
+                }
+                // neworder.forEach(function(d,i){
+                //     d.order = i
+                // })
+                // console.log("new order ")
+                // console.log(neworder)
+
+
+                nodes = neworder
+
+                for (let i = 0; i < nodes.length; i++) {
+                    old_new_order.set(nodes[i].order, i)
+                    nodes[i].order = i;
+                    event_order.set(nodes[i].id, nodes[i].order);
+                }
+                drawgraphdataset.nodes = nodes;
+                //把link的id改过来
+                for (let i = 0; i < links.length; i++) {
+                    links[i].isfirst = 0;
+                    for (let j = 0; j < links[i].source_order.length; j++) {
+                        links[i].source_order[j] = old_new_order.get(links[i].source_order[j])
+                    }
+                    links[i].target_order = old_new_order.get(links[i].target_order)
+                    links[i].source_order = links[i].source_order.sort(function(a,b){return a-b})
                 }
 
 
-                //source
-                var sourcetemp = singlecausality.filter(link =>(link.target == nodes[t].id))
-                for(let p = 0 ; p < sourcetemp.length; p ++ ){
-                    //if( neworder.some(node => node.id == singlecausality[p].target ) ) { //target一致
-                        if(!neworder.some(node => (node.id == sourcetemp[p].source[0]))){//且不存在该元素
-                            neworder.push(  nodes.find(node => (node.id == sourcetemp[p].source[0])) ) //因为已经filter length ==1,所以[0]
-                        }
-                   // }
+                //links排序
+                links = sortLinks(links, sort_method)
+                drawgraphdataset.links = links.filter(link => (link.strength <= select_strengths[0] || link.strength >= select_strengths[1]))
+                for (let i = 0; i < drawgraphdataset.links.length; i++) {
+                    drawgraphdataset.links[i].isfirst = 0
                 }
+                drawgraphdataset.lineList = (convertLinkToList(drawgraphdataset.links)).filter(line => ((line.source_and_order.length + 1) <= select_max_causes))
+                drawgraphdataset.links = restoreLinksFromLineList(drawgraphdataset.lineList)
+
+
+
             }
-            // neworder.forEach(function(d,i){
-            //     d.order = i
-            // })
-            // console.log("new order ")
-            // console.log(neworder)
-
-
-            nodes = neworder
-
-            for (let i = 0; i < nodes.length; i++) {
-                old_new_order.set(nodes[i].order, i)
-                nodes[i].order = i;
-                event_order.set(nodes[i].id, nodes[i].order);
-            }
-            drawgraphdataset.nodes = nodes;
-            //把link的id改过来
-            for (let i = 0; i < links.length; i++) {
-                links[i].isfirst = 0;
-                for (let j = 0; j < links[i].source_order.length; j++) {
-                    links[i].source_order[j] = old_new_order.get(links[i].source_order[j])
+            else if (vertical_order === "alphabetical") {
+                //给nodes按照字母排序
+                nodes = nodes.sort(function (a, b) { return a.name.localeCompare(b.name) })
+                for (let i = 0; i < nodes.length; i++) {
+                    old_new_order.set(nodes[i].order, i)
+                    nodes[i].order = i;
+                    event_order.set(nodes[i].id, nodes[i].order);
                 }
-                links[i].target_order = old_new_order.get(links[i].target_order)
-                links[i].source_order = links[i].source_order.sort(function(a,b){return a-b})
-            }
-
-
-            //links排序
-            links = sortLinks(links, sort_method)
-            drawgraphdataset.links = links.filter(link => (link.strength <= select_strengths[0] || link.strength >= select_strengths[1]))
-            for (let i = 0; i < drawgraphdataset.links.length; i++) {
-                drawgraphdataset.links[i].isfirst = 0
-            }
-            drawgraphdataset.lineList = (convertLinkToList(drawgraphdataset.links)).filter(line => ((line.source_and_order.length + 1) <= select_max_causes))
-            drawgraphdataset.links = restoreLinksFromLineList(drawgraphdataset.lineList)
-
-
-
-        }
-        else if (vertical_order === "alphabetical") {
-            //给nodes按照字母排序
-            nodes = nodes.sort(function (a, b) { return a.name.localeCompare(b.name) })
-            for (let i = 0; i < nodes.length; i++) {
-                old_new_order.set(nodes[i].order, i)
-                nodes[i].order = i;
-                event_order.set(nodes[i].id, nodes[i].order);
-            }
-            drawgraphdataset.nodes = nodes;
-            //把link的id改过来
-            for (let i = 0; i < links.length; i++) {
-                links[i].isfirst = 0;
-                for (let j = 0; j < links[i].source_order.length; j++) {
-                    links[i].source_order[j] = old_new_order.get(links[i].source_order[j])
+                drawgraphdataset.nodes = nodes;
+                //把link的id改过来
+                for (let i = 0; i < links.length; i++) {
+                    links[i].isfirst = 0;
+                    for (let j = 0; j < links[i].source_order.length; j++) {
+                        links[i].source_order[j] = old_new_order.get(links[i].source_order[j])
+                    }
+                    links[i].target_order = old_new_order.get(links[i].target_order)
+                    links[i].source_order = links[i].source_order.sort(function(a,b){return a-b})
                 }
-                links[i].target_order = old_new_order.get(links[i].target_order)
-                links[i].source_order = links[i].source_order.sort(function(a,b){return a-b})
-            }
 
 
-            //links排序
-            links = sortLinks(links, sort_method)
-            drawgraphdataset.links = links.filter(link => (link.strength <= select_strengths[0] || link.strength >= select_strengths[1]))
-            for (let i = 0; i < drawgraphdataset.links.length; i++) {
-                drawgraphdataset.links[i].isfirst = 0
-            }
-            drawgraphdataset.lineList = (convertLinkToList(drawgraphdataset.links)).filter(line => ((line.source_and_order.length + 1) <= select_max_causes))
-            drawgraphdataset.links = restoreLinksFromLineList(drawgraphdataset.lineList)
-        }
-        else if (vertical_order === "manual") {
-            drawgraphdataset.nodes = nodes;
-            //把link的id改过来
-            for (let i = 0; i < links.length; i++) {
-                links[i].isfirst = 0;
-                for (let j = 0; j < links[i].source_order.length; j++) {
-                    links[i].source_order[j] = old_new_order.get(links[i].source_order[j])
+                //links排序
+                links = sortLinks(links, sort_method)
+                drawgraphdataset.links = links.filter(link => (link.strength <= select_strengths[0] || link.strength >= select_strengths[1]))
+                for (let i = 0; i < drawgraphdataset.links.length; i++) {
+                    drawgraphdataset.links[i].isfirst = 0
                 }
-                links[i].target_order = old_new_order.get(links[i].target_order)
-                links[i].source_order = links[i].source_order.sort(function(a,b){return a-b})
+                drawgraphdataset.lineList = (convertLinkToList(drawgraphdataset.links)).filter(line => ((line.source_and_order.length + 1) <= select_max_causes))
+                drawgraphdataset.links = restoreLinksFromLineList(drawgraphdataset.lineList)
             }
-
-            //links排序
-            links = sortLinks(links, sort_method)
-
-            drawgraphdataset.links = links.filter(link => (link.strength <= select_strengths[0] || link.strength >= select_strengths[1]))
-            for (let i = 0; i < drawgraphdataset.links.length; i++) {
-                drawgraphdataset.links[i].isfirst = 0
-            }
-            drawgraphdataset.lineList = (convertLinkToList(drawgraphdataset.links)).filter(line => ((line.source_and_order.length + 1) <= select_max_causes))
-            drawgraphdataset.links = restoreLinksFromLineList(drawgraphdataset.lineList)
-        }
-        else {//cluster
-            nodes = nodes.sort(function (a, b) {
-                return cluster_order.indexOf(a.id) - cluster_order.indexOf(b.id)
-            })
-            console.log(nodes)
-            for (let i = 0; i < nodes.length; i++) {
-                old_new_order.set(nodes[i].order, i)
-                nodes[i].order = i
-                event_order.set(nodes[i].id, nodes[i].order);
-            }
-            console.log(old_new_order)
-            drawgraphdataset.nodes = nodes;
-            //把link的id改过来
-            for (let i = 0; i < links.length; i++) {
-                links[i].isfirst = 0;
-                for (let j = 0; j < links[i].source_order.length; j++) {
-                    links[i].source_order[j] = old_new_order.get(links[i].source_order[j])
+            else if (vertical_order === "manual") {
+                drawgraphdataset.nodes = nodes;
+                //把link的id改过来
+                for (let i = 0; i < links.length; i++) {
+                    links[i].isfirst = 0;
+                    for (let j = 0; j < links[i].source_order.length; j++) {
+                        links[i].source_order[j] = old_new_order.get(links[i].source_order[j])
+                    }
+                    links[i].target_order = old_new_order.get(links[i].target_order)
+                    links[i].source_order = links[i].source_order.sort(function(a,b){return a-b})
                 }
-                links[i].target_order = old_new_order.get(links[i].target_order)
-                links[i].source_order = links[i].source_order.sort(function(a,b){return a-b})
+
+                //links排序
+                links = sortLinks(links, sort_method)
+
+                drawgraphdataset.links = links.filter(link => (link.strength <= select_strengths[0] || link.strength >= select_strengths[1]))
+                for (let i = 0; i < drawgraphdataset.links.length; i++) {
+                    drawgraphdataset.links[i].isfirst = 0
+                }
+                drawgraphdataset.lineList = (convertLinkToList(drawgraphdataset.links)).filter(line => ((line.source_and_order.length + 1) <= select_max_causes))
+                drawgraphdataset.links = restoreLinksFromLineList(drawgraphdataset.lineList)
             }
-
-            //links排序
-            links = sortLinks(links, sort_method)
-
-            drawgraphdataset.links = links.filter(link => (link.strength <= select_strengths[0] || link.strength >= select_strengths[1]))
-            for (let i = 0; i < drawgraphdataset.links.length; i++) {
-                drawgraphdataset.links[i].isfirst = 0
-            }
-            drawgraphdataset.lineList = (convertLinkToList(drawgraphdataset.links)).filter(line => ((line.source_and_order.length + 1) <= select_max_causes))
-            drawgraphdataset.links = restoreLinksFromLineList(drawgraphdataset.lineList)
-        }
-
-
-        //horizontal_order的操作
-        if (horizontal_order === "number") {
-            drawgraphdataset.links = drawgraphdataset.links.filter(link => (link.strength <= select_strengths[0] || link.strength >= select_strengths[1]))
-            for (let i = 0; i < drawgraphdataset.links.length; i++) {
-                drawgraphdataset.links[i].isfirst = 0
-            }
-            drawgraphdataset.lineList = (convertLinkToList(drawgraphdataset.links)).filter(line => ((line.source_and_order.length + 1) <= select_max_causes))
-            drawgraphdataset.lineList = drawgraphdataset.lineList.sort(function (a, b) { return a.source_and_order.length - b.source_and_order.length })
-            drawgraphdataset.links = restoreLinksFromLineList(drawgraphdataset.lineList)
-
-        }
-        else if (horizontal_order === "strength") {
-            drawgraphdataset.links = links.filter(link => (link.strength <= select_strengths[0] || link.strength >= select_strengths[1]))
-            for (let i = 0; i < drawgraphdataset.links.length; i++) {
-                drawgraphdataset.links[i].isfirst = 0
-            }
-            drawgraphdataset.lineList = (convertLinkToList(drawgraphdataset.links)).filter(line => ((line.source_and_order.length + 1) <= select_max_causes))
-
-            drawgraphdataset.lineList = drawgraphdataset.lineList.sort(
-                function (a, b) {
-                    // let a_value_arr = Array.from(a.source_or_order_strength.values())
-                    // let b_value_arr = Array.from(b.source_or_order_strength.values())
-                    let a_value_arr = Array.from(a.source_or_order_strength.map(a => a.strength))
-                    let b_value_arr = Array.from(b.source_or_order_strength.map(a => a.strength))
-                    return (a_value_arr.filter(d => d > 0).length - a_value_arr.filter(d => d < 0).length) - (b_value_arr.filter(d => d > 0).length - b_value_arr.filter(d => d < 0).length)
+            else {//cluster
+                nodes = nodes.sort(function (a, b) {
+                    return cluster_order.indexOf(a.id) - cluster_order.indexOf(b.id)
                 })
-            drawgraphdataset.links = restoreLinksFromLineList(drawgraphdataset.lineList)
-        }
-        else if (horizontal_order.substr(0, 5) === "click") {
-            drawgraphdataset.lineList = reorderingLineList(drawgraphdataset.lineList, parseInt(horizontal_order.substr(5)))
-        }
-        else if (horizontal_order === 'manual') {
-            console.log(center_left, horizontalDragEnd, horizontalDragStart);
-            if (horizontalDragStart < horizontalDragEnd) {
-                var horizontal_temp = drawgraphdataset.lineList[center_left + horizontalDragStart];
-                for (var i = center_left + horizontalDragStart; i < center_left + horizontalDragEnd; i++) {
-                    drawgraphdataset.lineList[i] = drawgraphdataset.lineList[i + 1];
+                console.log(nodes)
+                for (let i = 0; i < nodes.length; i++) {
+                    old_new_order.set(nodes[i].order, i)
+                    nodes[i].order = i
+                    event_order.set(nodes[i].id, nodes[i].order);
                 }
-                drawgraphdataset.lineList[center_left + horizontalDragEnd] = horizontal_temp;
-            } else {
-                var horizontal_temp = drawgraphdataset.lineList[center_left + horizontalDragStart];
-                for (var i = center_left + horizontalDragStart; i > center_left + horizontalDragEnd; i--) {
-                    drawgraphdataset.lineList[i] = drawgraphdataset.lineList[i - 1];
+                console.log(old_new_order)
+                drawgraphdataset.nodes = nodes;
+                //把link的id改过来
+                for (let i = 0; i < links.length; i++) {
+                    links[i].isfirst = 0;
+                    for (let j = 0; j < links[i].source_order.length; j++) {
+                        links[i].source_order[j] = old_new_order.get(links[i].source_order[j])
+                    }
+                    links[i].target_order = old_new_order.get(links[i].target_order)
+                    links[i].source_order = links[i].source_order.sort(function(a,b){return a-b})
                 }
-                drawgraphdataset.lineList[center_left + horizontalDragEnd] = horizontal_temp;
+
+                //links排序
+                links = sortLinks(links, sort_method)
+
+                drawgraphdataset.links = links.filter(link => (link.strength <= select_strengths[0] || link.strength >= select_strengths[1]))
+                for (let i = 0; i < drawgraphdataset.links.length; i++) {
+                    drawgraphdataset.links[i].isfirst = 0
+                }
+                drawgraphdataset.lineList = (convertLinkToList(drawgraphdataset.links)).filter(line => ((line.source_and_order.length + 1) <= select_max_causes))
+                drawgraphdataset.links = restoreLinksFromLineList(drawgraphdataset.lineList)
             }
         }
-        else if (horizontal_order === "maunl") {
+        //horizontal_order的操作
+        else {
+            if (horizontal_order === "number") {
+                drawgraphdataset.links = drawgraphdataset.links.filter(link => (link.strength <= select_strengths[0] || link.strength >= select_strengths[1]))
+                for (let i = 0; i < drawgraphdataset.links.length; i++) {
+                    drawgraphdataset.links[i].isfirst = 0
+                }
+                drawgraphdataset.lineList = (convertLinkToList(drawgraphdataset.links)).filter(line => ((line.source_and_order.length + 1) <= select_max_causes))
+                drawgraphdataset.lineList = drawgraphdataset.lineList.sort(function (a, b) { return a.source_and_order.length - b.source_and_order.length })
+                drawgraphdataset.links = restoreLinksFromLineList(drawgraphdataset.lineList)
 
-        }
+            }
+            else if (horizontal_order === "strength") {
+                drawgraphdataset.links = links.filter(link => (link.strength <= select_strengths[0] || link.strength >= select_strengths[1]))
+                for (let i = 0; i < drawgraphdataset.links.length; i++) {
+                    drawgraphdataset.links[i].isfirst = 0
+                }
+                drawgraphdataset.lineList = (convertLinkToList(drawgraphdataset.links)).filter(line => ((line.source_and_order.length + 1) <= select_max_causes))
 
-        else {      //"default"
-
+                drawgraphdataset.lineList = drawgraphdataset.lineList.sort(
+                    function (a, b) {
+                        let a_value_arr = Array.from(a.source_or_order_strength.map(a => a.strength))
+                        let b_value_arr = Array.from(b.source_or_order_strength.map(a => a.strength))
+                        return (a_value_arr.filter(d => d > 0).length - a_value_arr.filter(d => d < 0).length) - (b_value_arr.filter(d => d > 0).length - b_value_arr.filter(d => d < 0).length)
+                    })
+                drawgraphdataset.links = restoreLinksFromLineList(drawgraphdataset.lineList)
+            }
+            else if (horizontal_order.substr(0, 5) === "click") {
+                drawgraphdataset.lineList = reorderingLineList(drawgraphdataset.lineList, parseInt(horizontal_order.substr(5)))
+            }
+            else if (horizontal_order === 'manual') {
+                console.log(center_left, horizontalDragEnd, horizontalDragStart);
+                if (horizontalDragStart < horizontalDragEnd) {
+                    var horizontal_temp = drawgraphdataset.lineList[center_left + horizontalDragStart];
+                    for (var i = center_left + horizontalDragStart; i < center_left + horizontalDragEnd; i++) {
+                        drawgraphdataset.lineList[i] = drawgraphdataset.lineList[i + 1];
+                    }
+                    drawgraphdataset.lineList[center_left + horizontalDragEnd] = horizontal_temp;
+                } else {
+                    var horizontal_temp = drawgraphdataset.lineList[center_left + horizontalDragStart];
+                    for (var i = center_left + horizontalDragStart; i > center_left + horizontalDragEnd; i--) {
+                        drawgraphdataset.lineList[i] = drawgraphdataset.lineList[i - 1];
+                    }
+                    drawgraphdataset.lineList[center_left + horizontalDragEnd] = horizontal_temp;
+                }
+            } else {      //"default"
+            }
         }
     }
 
@@ -377,15 +371,6 @@ function getCausalLinkWithDelete(operation, dataset, event2namefortooltip, stren
         (!obj.source_order.includes(deletedIndexOfEntity)
             & (obj.target_order !== deletedIndexOfEntity))
         )
-
-
-
-        // for(var i = 0; i < drawgraphdataset.links.length; i++){
-        //     if(drawgraphdataset.links[i].target_order == deletedIndexOfEntity){
-        //         drawgraphdataset.links.splice(i,1);
-        //         links.splice(i, 1);
-        //     }
-        // }
     }
 
     drawgraphdataset.links = links
@@ -435,8 +420,6 @@ function getCausalLinkWithDeleteEntity(operation, dataset, event2namefortooltip,
     // });
     // }
     if (deletedIndexOfEntity != -1) {
-        // console.log("will delete")
-        // console.log(links.splice(deletedIndexOfLinks, 1));
         for (var i = 0; i < drawgraphdataset.links.length; i++) {
             if (drawgraphdataset.links[i].target_order == deletedIndexOfEntity) {
                 drawgraphdataset.links.splice(i, 1);
@@ -586,49 +569,6 @@ function getAnotherLineList(brusheddataOriginal_center) {
         }
     }
     return another_paohvis;
-}
-function sortLinks(links, sort_method) {
-    //第一种排序方式 target-因果强度
-    if (sort_method === 1) {
-        links.sort(
-            function (a, b) {
-                if (a.target_order === b.target_order) {
-                    return b.strength - a.strength;
-                }
-                return a.target_order - b.target_order;
-            });
-    } else if (sort_method === 2) {
-        //第二种排序方式  target-原因数量-因果强度
-        links.sort(
-            function (a, b) {
-                if (a.target_order === b.target_order) {
-                    if (a.source_order.length == b.source_order.length)
-                        return b.strength - a.strength;
-                    return a.source_order.length - b.source_order.length;
-                }
-                return a.target_order - b.target_order;
-            });
-    } else {
-        //第三种排序方式  target-原因数量-原因id
-        links.sort(
-            function (a, b) {
-                if (a.target_order === b.target_order) {
-                    if (a.source_order.length === b.source_order.length) {
-                        for (let i = 0; i < a.source_order.length; i++) {
-                            if (a.source_order[i] === b.source_order[i]) {
-                                continue;
-                            } else {
-                                return a.source_order[i] - b.source_order[i];
-                            }
-                        }
-                        // return b.strength - a.strength;
-                    }
-                    return a.source_order.length - b.source_order.length;
-                }
-                return a.target_order - b.target_order;
-            });
-    }
-    return links;
 }
 
 function restoreLinksFromLineList(templineList) {
@@ -1023,7 +963,7 @@ function add_query() {
 //         .style("font-weight", "bold")
 //     d3.select("#smallpropagation" + all_query_history.length).style("display", "true")
 
-//     // let 
+//     // let
 //     //第一个text的内容为target，前面的text的内容为source
 //     console.log(d3.select("#smallpropagation" + all_query_history.length).selectAll("g").selectAll("text"))
 
@@ -1195,137 +1135,6 @@ function getColorByName(name, arr) {
         return filterArray[0].color
     }
 }
-
-// //可视化：左侧的颜色轴
-// function colorScalePicker(div) {
-//     let background_margin = { top: 5, right: 5, bottom: 5, left: 15 },
-//         slider_margin = { top: 8, right: 2, bottom: 1, left: 12 },
-//         // padding = { top: 5, right: 5, bottom: 5, left: 5 }
-//         rect_width = 140,
-//         rect_height = 10
-
-//     let container_svg = d3.select(div)
-//         .attr("width", rect_width + background_margin.left + background_margin.right)
-//         .attr("height", rect_height + background_margin.top + background_margin.bottom)
-//         .append("svg")
-//         .attr("width", rect_width + background_margin.left + background_margin.right)
-//         .attr("height", rect_height + background_margin.top + background_margin.bottom)
-//         .attr("id", "container_svg")
-//         .attr("transform", "translate(" + 0 + "," + 0 + ")")
-
-//     // 颜色过渡背景
-//     let color_axis = d3.scaleSequential(d3.interpolatePRGn).domain([0, rect_width])
-
-//     let background_svg = d3.select("#container_svg")
-//         .append("g")
-//         .attr("width", rect_width)
-//         .attr("height", rect_height)
-//         .attr("transform", "translate(" + background_margin.left + "," + background_margin.top + ")")
-
-//     let slider_svg = d3.select("#container_svg")
-//         .append("g")
-//         .attr("width", rect_width + 6)
-//         .attr("height", rect_height + 8)
-//         .attr("transform", "translate(" + slider_margin.left + "," + slider_margin.top + ")")
-
-//     let rects = background_svg.selectAll(".colorRect")
-//         .data(d3.range(rect_width), function (d) {
-//             return d;
-//         })
-//         .enter()
-//         .append("rect")
-//         .attr("class", "colorRect")
-//         .attr("x", function (d, i) {
-//             return i - 2;
-//         })
-//         .attr("y", 0)
-//         .attr("width", 1)
-//         .attr("height", rect_height)
-//         .style("fill", function (d, i) {
-//             // console.log(color_axis(d))
-//             return color_axis(d)
-//         })
-//         .style("stroke", "none")
-
-
-//     // //比例尺上的拖动
-//     let axis_strength = d3.scaleLinear()
-//         .domain([-1, 1])
-//         .range([0, rect_width])
-
-//     var sliderSimple = d3
-//         .sliderBottom()
-//         .min(-1)
-//         .max(1)
-//         .width(140)
-//         .tickFormat(d3.format('.2%'))
-//         .ticks(0)
-//         .default([-1, 1])
-//         .displayValue(true)
-//         .on('onchange', val => {
-//             console.log(val);
-//             select_strengths = val
-//             focusandcontextbrush("filter", "#Brushview", global_obj, select_strengths, causes_max, order_method)
-//             //focusandcontextbrush("change", "#Brushview", global_obj, select_strengths, causes_max, order_method)
-//         });
-
-
-//     slider_svg.call(sliderSimple);
-//     d3.select('p#value-simple').text(d3.format('.2%')(sliderSimple.value()));
-
-// }
-
-// function getDijPathV0(graphdataset, source, target) {
-//     let nodes = [];
-//     let paths = [];
-//     for (let i = 0; i < graphdataset.nodes.length; i++)
-//         nodes.push({
-//             "index": graphdataset.nodes[i].order,
-//             "value": graphdataset.nodes[i].id,
-//             "r": 10
-//         })
-//     let rows = graphdataset.nodes.length, columns = graphdataset.nodes.length;
-//     let arr = [];
-//     for (let r = 0; r < rows; r++) {
-//         arr[r] = Array.apply(null, Array(columns)).map(function (i) {
-//             return 0;
-//         });
-//     }
-//     for (let j = 0; j < graphdataset.links.length; j++) {//如果小于0则不继续划分
-//         let x = graphdataset.links[j].source_order[0];
-//         let y = graphdataset.links[j].target_order;
-//         if (graphdataset.links[j].strength > 0 && arr[x][y] === 0) {
-//             arr[x][y] = 1;
-//             paths.push({
-//                 "source": graphdataset.links[j].source_order[0],//有很多个点融合？所以取第几个都是一样？
-//                 "target": graphdataset.links[j].target_order,//用索引值
-//                 "distance": graphdataset.links[j].strength * 100 //放大一百倍
-//             })
-//         }
-//     }
-//     let sp1 = new ShortestPathCalculator(nodes, paths);
-
-//     // var route = sp1.findRoute(0,graphdataset.nodes.length-1);
-//     let route = sp1.findRoute(source, target);//5-》9的最短路径
-//     if(route.mesg === "OK" && route.distance === 0){
-//         return { "nodes": null, "edges": null };
-//     }
-//     let result = sp1.formatResult();
-//     //result反向输出
-//     let path_nodes = []
-//     let path_edges = []
-//     for (let j = result.length - 1; j > 0; j--) {
-//         path_nodes.push({ "id": result[j], "eventname": getEventNameById(result[j], graphdataset.nodes) })
-//         path_edges.push({ "nodes": [result[j], result[j - 1]], "strength": result[i].strength })
-//     }
-//     path_nodes.push({ "id": result[0], "eventname": getEventNameById(result[0], graphdataset.nodes) })
-//     console.log('result', result);
-//     return { "nodes": path_nodes, "edges": path_edges };
-// }
-
-
-
-
 
 function getDijPath(graphdataset, startname, endname) {
     // console.log(graphdataset)
@@ -1544,7 +1353,7 @@ function sortLinks(links, sort_method) {
                 }
                 return a.target_order - b.target_order;
             });
-    } else if (sort_method == 2) {
+    } else if (sort_method === 2) {
         //第二种排序方式  target-原因数量-因果强度
         links.sort(
             function (a, b) {
@@ -1560,7 +1369,7 @@ function sortLinks(links, sort_method) {
         links.sort(
             function (a, b) {
                 if (a.target_order === b.target_order) {
-                    if (a.source_order.length == b.source_order.length) {
+                    if (a.source_order.length === b.source_order.length) {
                         for (let i = 0; i < a.source_order.length; i++) {
                             if (a.source_order[i] === b.source_order[i]) {
                                 continue;
